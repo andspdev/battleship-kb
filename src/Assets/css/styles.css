@@ -1,0 +1,185 @@
+@font-face {
+    font-family: ExplosiveAttack;
+    src: url(../fonts/eExplosiveAttack.ttf);
+}
+
+a {
+    color: #ba1435;
+    text-decoration: none;
+}
+
+.index-message {
+    text-align: center;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%
+}
+
+.index-message h1 {
+    font-size: 5.5em;
+    font-family: ExplosiveAttack;
+}
+
+.index-message .btn {
+    font-size: 18px;
+    padding: 12px 18px;
+    margin: 0 6px;
+    width: 220px;
+    border: 1px solid #bbb;
+    border-radius: 12px
+}
+
+.index-message .btn:hover,
+#play-board .btn:hover {
+    background: #f5f5f5
+}
+
+.index-message .desc {
+    font-size: 20px
+}
+
+.index-message .btn.btn-main {
+    background: #ba1435;
+    color: #fff
+}
+
+.index-message .btn.btn-main:hover {
+    background: #a51331
+}
+
+.footer-index {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #f9f9f9;
+    padding: 15px 20px;
+    color: #333;
+    border-top: 1px solid #ddd;
+    text-align: center
+}
+
+#play-board .cell {
+    width: 35px;
+    height: 35px;
+    border: 1px solid black;
+}
+
+#play-board .cell:hover:not(#play-board .cell.diposisikan) {
+    background-color: #f0f0f0;
+    cursor: pointer
+}
+
+#play-board .btn {
+    border: 1px solid #ccc;
+    margin: 0 5px;
+    border-radius: 12px;
+    padding: 10px;
+    width: 180px
+}
+
+#play-board .menu-back .back-button {
+    color: #333;
+    font-weight: bold;
+    font-size: 18px
+}
+
+#play-board .menu-back .back-button span {
+    display: inline-block;
+    margin-left:18px
+}
+
+
+#play-board .ship {
+    border: 1px solid #333;
+    overflow: hidden;
+    display: flex;
+    cursor: pointer;	
+}
+
+#play-board .ship:focus {
+    cursor: move;
+}
+
+#play-board .ship.horizontal {
+    height: 35px;
+}
+
+#play-board .ship div {
+    width: 35px;
+    height: 35px;
+    display: inline-block;
+    border-right: 1px solid #333
+}
+
+#play-board .ship div:last-child {
+    border-right: none
+}
+
+#play-board .ship.vertical {
+    width: 35px;
+    display: block
+}
+
+#play-board .ship.vertical div {
+    display: block;
+    border-bottom: 1px solid #333
+}
+
+#play-board .ship.vertical div:last-child {
+    border-bottom: none
+}
+
+
+/* Kapal */
+#play-board .ship.horizontal#carrier {
+    width: 175px;
+}
+#play-board .ship.vertical#carrier {
+    height: 175px
+}
+
+#play-board .ship.horizontal#destroyer {
+    width: 105px;
+}
+
+#play-board .ship.vertical#destroyer {
+    height: 105px
+}
+
+#play-board .ship.horizontal#submarine,
+#play-board .ship.horizontal#submarine
+{
+    width: 35px;
+    height: 35px
+}
+
+#play-board .ship.vertical#submarine {
+    height: 35px
+}
+
+.cell.diposisikan {
+    cursor: not-allowed
+}
+
+.bg-selam, .cell.submarine {
+    background: var(--bs-primary)
+}
+
+.bg-perang, .cell.destroyer {
+    background: var(--bs-success)
+}
+
+.bg-perang div:first-child {
+    background: #14663f
+}
+
+.bg-induk, .cell.carrier {
+    background: var(--bs-secondary)
+}
+
+.bg-induk div:first-child {
+    background: #555c63
+}

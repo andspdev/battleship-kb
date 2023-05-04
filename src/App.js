@@ -1,25 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { GlobalProvider } from "./States/GlobalProvider";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import 'bootstrap/dist/js/bootstrap.bundle'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import './Assets/css/styles.css'
+
+
+// Load Component
+import IndexComponent from './Component/IndexComponent'
+import PlayComponent from './Component/PlayComponent'
+
+
+
+function App()
+{
+	return (
+		<GlobalProvider>
+			<BrowserRouter>
+				<Routes>
+					<Route path="/" element={<IndexComponent/>}/>
+					<Route path="/play" element={<PlayComponent/>}/>
+				</Routes>
+			</BrowserRouter>
+		</GlobalProvider>
+	);
 }
 
 export default App;
