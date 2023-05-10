@@ -15,25 +15,43 @@ class PlayComponent extends Component
         super(props)
 
         this.state = {
-            // Kumpulan rotasi kapal
-            rotasiKapalInduk: 'horizontal',
-            rotasiKapalPerang: 'horizontal',
-            rotasiKapalSelam: 'horizontal',
-    
-            
-            // Keperluan Atur Papan
-            board_game_size: 10,
-            panjang_kapal: [5, 3, 1],
-            posisi_kapal: [],
+            // Pengaturan game
+            is_play_game: false,
+            giliran_player: 'player',
 
 
-            //  Hide Kapal
-            hideKapalInduk: false,
-            hideKapalPerang: false,
-            hideKapalSelam: false,
+            // Player
+                // Kumpulan rotasi kapal
+                rotasiKapalInduk: 'horizontal',
+                rotasiKapalPerang: 'horizontal',
+                rotasiKapalSelam: 'horizontal',
+                
+                // Keperluan Atur Papan
+                board_game_size: 8,
+                panjang_kapal: [5, 3, 1],
+                posisi_kapal: [],
+                posisi_kapal_id: [],
+
+                //  Hide Kapal
+                hideKapalInduk: false,
+                hideKapalPerang: false,
+                hideKapalSelam: false,
+
+            // AI
+            posisi_kapal_ai: [],
+            posisi_kapal_ai_id: [
+                ['s', null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, 'd', null, 'c', 'c', 'c', 'c', 'c'],
+                [null, 'd', null, null, null, null, null, null],
+                [null, 'd', null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+            ],
+
         }
     }
-
 
 
     componentDidMount()
@@ -153,12 +171,13 @@ class PlayComponent extends Component
                                     {
                                         if (orientasi === "horizontal") 
                                         {
-                                            board_array[row][col + i] = kapal_id;
+                                            board_array[row][col + i] = kapal_id.substr(0, 1);
                                         }
                                         else {
-                                            board_array[row + i][col] = kapal_id;
+                                            board_array[row + i][col] = kapal_id.substr(0, 1);
                                         }
                                     }
+
 
                                     // Simpan posisi kapal yang udh diatur
                                     posisi_kapal.push({
@@ -196,13 +215,21 @@ class PlayComponent extends Component
 
 
                                     // Update posisi kapal yang di state
-                                    this.setState({ posisi_kapal: posisi_kapal });
-
+                                    this.setState({ 
+                                        posisi_kapal: posisi_kapal,
+                                        posisi_kapal_id: board_array
+                                     });
                                     
+
                                     // reset posisi kapal (yang bukan var state)
                                     if (this.state.hideKapalSelam && this.state.hideKapalPerang && 
                                         this.state.hideKapalInduk)
+                                    {
                                         posisi_kapal = [];
+                                        board_array = Array.from({ length: state_class.board_game_size }, () =>
+                                            Array.from({ length: state_class.board_game_size }, () => null)
+                                        );
+                                    }
                                 }
                             }
                         });
@@ -240,10 +267,156 @@ class PlayComponent extends Component
     }
 
 
-
     handleMulaiMainGame()
     {
-        alert('test')
+        console.log(this.state.posisi_kapal_ai_id)
+
+
+        this.setState({
+            is_play_game: true
+        });
+    }
+
+
+    aturUlangLetak()
+    {
+
+        // Atur ulang simpanan statenya
+        this.setState({
+            posisi_kapal: [],
+            hideKapalInduk: false,
+            hideKapalPerang: false,
+            hideKapalSelam: false,
+            rotasiKapalInduk: 'horizontal',
+            rotasiKapalPerang: 'horizontal',
+            rotasiKapalSelam: 'horizontal',
+        });
+
+
+        // Dapatin semua cell yang udh diatur posisinya
+        const papan_main = document.getElementById("papan-main");
+        
+        if (papan_main)
+        {
+            const list_cell = papan_main.querySelectorAll('.cell');
+
+            if (list_cell)
+                // Ngembalikan posisi semula kapal
+                list_cell.forEach((cell) => cell.className = 'cell');
+        }
+
+
+        // Ngembalikan vertikal ke horizontal semua
+        const kapal_semua = document.querySelectorAll(".ship");
+        if (kapal_semua)
+        {
+            kapal_semua.forEach((kapal) => 
+            {
+                kapal.classList.remove('vertical');
+                kapal.classList.remove('horizontal');
+                kapal.classList.add('horizontal');
+            });
+        }
+    }
+
+
+    handleKlikCell(baris, kolom)
+    {
+        alert(`Baris: ${baris}, Kolom: ${kolom}`)
+    }
+
+
+    isPlayGame()
+    {
+        return(
+            <div className='mt-2'>
+                <div className="row">
+                    <div className="col-md-4">
+                        <div style={{maxWidth: '400px', margin: 'auto'}}>
+                            <h2>Papan Anda</h2>
+                            <p>Musuh akan menyerang kapal Anda secara acak lokasinya.</p>
+
+                            <div className="mt-5">
+                                <table id="papan-anda">
+                                    <tbody>
+                                        {this.state.posisi_kapal_id.map((baris, barisIndex) => 
+                                        (
+                                            <tr key={barisIndex}>
+                                                {baris.map((kolom, kolomIndex) => 
+                                                {
+                                                    let nama_kolom = 'cell diposisikan'
+
+                                                    if (kolom === 'c')
+                                                        nama_kolom += ' carrier'
+
+                                                    else if (kolom === 'd')
+                                                        nama_kolom += ' destroyer'
+
+                                                    else if (kolom === 's')
+                                                        nama_kolom += ' submarine'
+
+                                                    return (
+                                                        <td key={kolomIndex} className={nama_kolom}></td>
+                                                    )
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                <div className='mt-2'>
+                                    <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div className="col-md-4">
+                        <div style={{maxWidth: '400px', margin: 'auto'}}>
+                            <h2>Papan Musuh</h2>
+                            <p>Silakan serang kapal musuh yang ada di papan bawah ini.</p>
+
+                            <div className="mt-5">
+                                
+                                <table id="papan-ai">
+                                    <tbody>
+                                        {this.state.posisi_kapal_ai_id.map((baris, barisIndex) => (
+                                            <tr key={barisIndex}>
+                                                {baris.map((kolom, kolomIndex) => (
+                                                    <td className='cell' key={kolomIndex} onClick={() => this.handleKlikCell(barisIndex, kolomIndex)}></td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                <div className='mt-2'>
+                                    <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div className="col-md-4">
+                        <div style={{maxWidth: '400px', margin: 'auto'}}>
+                            <h2>Permainan</h2>
+                            <p>Informasi mengenai permainan dan skill yang akan di pakai nantinya.</p>
+
+                            <div className='mt-5'>
+                                <label className="form-label d-block">Giliran Permainan:</label>
+                                <b>Anda</b>
+
+                                <div class='mt-5'>                                
+                                    <h5>Skill Permainan</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
 
@@ -252,20 +425,20 @@ class PlayComponent extends Component
         const [globalState] = this.context;
 
 
-        let outputTableCell = '';
-        for (let x = 0; x < this.state.board_game_size; x++)
-        {
-            outputTableCell += '<tr>'
-            
-            for (let y = 0; y < this.state.board_game_size; y++)
-                outputTableCell += '<td class="cell"></td>'
-
-            outputTableCell += '</tr>'
-        }
-
-
         if (globalState.isPlay)
         {
+
+            let outputTableCell = '';
+            for (let x = 0; x < this.state.board_game_size; x++)
+            {
+                outputTableCell += '<tr>'
+                
+                for (let y = 0; y < this.state.board_game_size; y++)
+                    outputTableCell += '<td class="cell"></td>'
+
+                outputTableCell += '</tr>'
+            }
+            
             return(
                 <>
                     <div className="container my-5" id="play-board">
@@ -275,130 +448,133 @@ class PlayComponent extends Component
                             </Link>
                         </div>
 
-                        <div className='mt-2' style={{maxWidth: '900px', margin: 'auto'}}>
-                            <div className="row">
-                                <div className="col-md-6">
-                                    <div style={{maxWidth: '400px', margin: 'auto'}}>
-                                        <h2>Papan Main</h2>
-                                        <p>Silakan posisikan letak kapal Anda terlebih dahulu di papan bawah ini:</p>
 
-                                        <div className="mt-5">
-                                            <table id="papan-main">
-                                                <tbody dangerouslySetInnerHTML={{__html: outputTableCell}}></tbody>
-                                            </table>
+                        {!this.state.is_play_game ? (
+                            <div className='mt-2' style={{maxWidth: '900px', margin: 'auto'}}>
+                                <div className="row">
+                                    <div className="col-md-6">
+                                        <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                            <h2>Papan Main</h2>
+                                            <p>Silakan posisikan letak kapal Anda terlebih dahulu di papan bawah ini:</p>
 
-                                            <div className='mt-2'>
-                                                <small>Ukuran: 10x10</small>
+                                            <div className="mt-5">
+                                                <table id="papan-main">
+                                                    <tbody dangerouslySetInnerHTML={{__html: outputTableCell}}></tbody>
+                                                </table>
+
+                                                <div className='mt-2'>
+                                                    <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
 
-                                <div className="col-md-6">
-                                    <div style={{maxWidth: '400px', margin: 'auto'}}>
-                                        <h2>Pilih Kapal</h2>
-                                        <p><i>Drag and drop</i> kapal di bawah ini ke papan main, 
-                                        serta atur vertikal atau horizontalnya dengan klik pada bagian kapal:</p>
+                                    <div className="col-md-6">
+                                        <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                            <h2>Pilih Kapal</h2>
+                                            <p><i>Drag and drop</i> kapal di bawah ini ke papan main, 
+                                            serta atur vertikal atau horizontalnya dengan klik pada bagian kapal:</p>
 
 
-                                        <div className="mt-5">
-                                            <div className="col-12 mb-3">
-                                                
-                                                <div className="row">
-                                                    <div className='col-md-4 mb-3'>Kapal Induk</div>
-                                                    <div className='col-md-8 mb-3'>
+                                            <div className="mt-5">
+                                                <div className="col-12 mb-3">
+                                                    
+                                                    <div className="row">
+                                                        <div className='col-md-4 mb-3'>Kapal Induk</div>
+                                                        <div className='col-md-8 mb-3'>
 
-                                                        <div style={{display: !this.state.hideKapalInduk ? 'block' : 'none'}}>
-                                                            <div className={this.state.rotasiKapalInduk === 'horizontal' ? 'ship horizontal bg-induk' : 'ship vertical bg-induk'} 
-                                                            onClick={() => this.rotateKapal('induk')} id="carrier" data-id="1" draggable="true">
-                                                                <div></div>
-                                                                <div></div>
-                                                                <div></div>
-                                                                <div></div>
-                                                                <div></div>
+                                                            <div style={{display: !this.state.hideKapalInduk ? 'block' : 'none'}}>
+                                                                <div className={this.state.rotasiKapalInduk === 'horizontal' ? 'ship horizontal bg-induk' : 'ship vertical bg-induk'} 
+                                                                onClick={() => this.rotateKapal('induk')} id="carrier" data-id="1" draggable="true">
+                                                                    <div></div>
+                                                                    <div></div>
+                                                                    <div></div>
+                                                                    <div></div>
+                                                                    <div></div>
+                                                                </div>
                                                             </div>
+
+                                                            {this.state.hideKapalInduk ? (
+                                                                <>
+                                                                    <i className="fa-solid fa-ship text-secondary"></i> Siap!
+                                                                </>
+                                                            ) : ''}
                                                         </div>
-
-                                                        {this.state.hideKapalInduk ? (
-                                                            <>
-                                                                <i className="fa-solid fa-ship text-secondary"></i> Siap!
-                                                            </>
-                                                        ) : ''}
                                                     </div>
-                                                </div>
-                                                
+                                                    
 
-                                            </div>
-
-                                            <div className="col-12 mb-3">
-
-                                                <div className="row">
-                                                    <div className='col-md-4 mb-3'>Kapal Perang</div>
-                                                    <div className='col-md-8 mb-3'>
-
-                                                        <div style={{display: !this.state.hideKapalPerang ? 'block' : 'none'}}>
-                                                            <div className={this.state.rotasiKapalPerang === 'horizontal' ? 'ship horizontal bg-perang' : 'ship vertical bg-perang'} 
-                                                            onClick={() => this.rotateKapal('perang')} id="destroyer" data-id="2" draggable="true">
-                                                                <div></div>
-                                                                <div></div>
-                                                                <div></div>
-                                                            </div>
-                                                        </div>
-
-                                                        {this.state.hideKapalPerang ? (
-                                                            <>
-                                                                <i className="fa-solid fa-ship text-success"></i> Siap!
-                                                            </>
-                                                        ) : ''}
-                                                    </div>
                                                 </div>
 
-                                            </div>
+                                                <div className="col-12 mb-3">
 
-                                            <div className="col-12 mb-3">
-                                                <div className="row">
-                                                    <div className='col-md-4 mb-3'>Kapal Selam</div>
-                                                    <div className='col-md-8 mb-3'>
+                                                    <div className="row">
+                                                        <div className='col-md-4 mb-3'>Kapal Perang</div>
+                                                        <div className='col-md-8 mb-3'>
 
-                                                        <div style={{display: !this.state.hideKapalSelam ? 'block' : 'none'}}>
-                                                            <div className={this.state.rotasiKapalSelam === 'horizontal' ? 'ship horizontal bg-selam' : 'ship vertical bg-selam'} 
-                                                            onClick={() => this.rotateKapal('selam')} id="submarine" data-id="3" draggable="true">
-                                                                <div></div>
+                                                            <div style={{display: !this.state.hideKapalPerang ? 'block' : 'none'}}>
+                                                                <div className={this.state.rotasiKapalPerang === 'horizontal' ? 'ship horizontal bg-perang' : 'ship vertical bg-perang'} 
+                                                                onClick={() => this.rotateKapal('perang')} id="destroyer" data-id="2" draggable="true">
+                                                                    <div></div>
+                                                                    <div></div>
+                                                                    <div></div>
+                                                                </div>
                                                             </div>
-                                                        </div>
 
-                                                        {this.state.hideKapalSelam ? (
-                                                            <>
-                                                                <i className="fa-solid fa-ship text-primary"></i> Siap!
-                                                            </>
-                                                        ) : ''}
+                                                            {this.state.hideKapalPerang ? (
+                                                                <>
+                                                                    <i className="fa-solid fa-ship text-success"></i> Siap!
+                                                                </>
+                                                            ) : ''}
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                                <div className="col-12 mb-3">
+                                                    <div className="row">
+                                                        <div className='col-md-4 mb-3'>Kapal Selam</div>
+                                                        <div className='col-md-8 mb-3'>
+
+                                                            <div style={{display: !this.state.hideKapalSelam ? 'block' : 'none'}}>
+                                                                <div className={this.state.rotasiKapalSelam === 'horizontal' ? 'ship horizontal bg-selam' : 'ship vertical bg-selam'} 
+                                                                onClick={() => this.rotateKapal('selam')} id="submarine" data-id="3" draggable="true">
+                                                                    <div></div>
+                                                                </div>
+                                                            </div>
+
+                                                            {this.state.hideKapalSelam ? (
+                                                                <>
+                                                                    <i className="fa-solid fa-ship text-primary"></i> Siap!
+                                                                </>
+                                                            ) : ''}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+
+
+                                            {this.state.posisi_kapal.length === this.state.panjang_kapal.length ? (
+                                                <div className="my-3 py-4 text-center">
+                                                    <h4>Sudah Siap?</h4>
+                                                    
+                                                    <div className='mt-4'>
+                                                        <button type='button' className="btn mb-2" onClick={() => this.aturUlangLetak()}>
+                                                            <i className="fa-solid fa-rotate-right"></i> Atur Ulang
+                                                        </button>
+
+                                                        <button type='button' className="btn btn-mulai-main bg-success text-white mb-2" id="mulai-gamenya" onClick={() => this.handleMulaiMainGame()}>
+                                                            <i className="fa-solid fa-play"></i> Mulai!
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : ''}
+                                            
                                         </div>
-
-
-                                        {this.state.posisi_kapal.length === this.state.panjang_kapal.length ? (
-                                            <div className="my-3 py-4 text-center">
-                                                <h4>Sudah Siap?</h4>
-                                                
-                                                <div className='mt-4'>
-                                                    <button type='button' className="btn">
-                                                        <i className="fa-solid fa-rotate-right"></i> Atur Ulang
-                                                    </button>
-
-                                                    <button type='button' className="btn btn-mulai-main bg-success text-white" id="mulai-gamenya" onClick={() => this.handleMulaiMainGame()}>
-                                                        <i className="fa-solid fa-play"></i> Mulai!
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : ''}
-                                        
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : this.isPlayGame()}
                     </div>
                 </>
             )
