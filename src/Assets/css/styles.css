@@ -67,6 +67,10 @@ a {
     border: 1px solid black;
 }
 
+.cell[disabled] {
+    cursor: not-allowed;
+}
+
 #play-board .cell:hover:not(#play-board .cell.diposisikan) {
     background-color: #f0f0f0;
     cursor: pointer

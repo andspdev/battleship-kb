@@ -7,7 +7,6 @@ class PlayComponent extends Component
 {
     static contextType = GlobalContext;
 
-    
 
 
     constructor(props)
@@ -17,7 +16,7 @@ class PlayComponent extends Component
         this.state = {
             // Pengaturan game
             is_play_game: false,
-            giliran_player: 'player',
+            giliran_player: true,
 
 
             // Player
@@ -322,7 +321,36 @@ class PlayComponent extends Component
 
     handleKlikCell(baris, kolom)
     {
-        alert(`Baris: ${baris}, Kolom: ${kolom}`)
+        let coba_array = this.state.posisi_kapal_ai_id;
+
+
+        if (this.state.giliran_player && 
+            coba_array[baris][kolom] !== '-' && 
+            coba_array[baris][kolom] !== 'x')
+        {
+            if (coba_array[baris][kolom] === 's' || 
+                coba_array[baris][kolom] === 'd' || 
+                coba_array[baris][kolom] === 'c')
+                coba_array[baris][kolom] = 'x'
+            else
+                coba_array[baris][kolom] = '-'
+                
+
+            // Ganti state kalau ada perubahan jadi 'x'
+            this.setState({ 
+                giliran_player: false,
+                posisi_kapal_ai_id: coba_array 
+            });
+
+            
+            setTimeout(() =>
+            {
+
+                // Update giliran player
+                this.setState({ giliran_player: true });
+
+            }, 4000);
+        } 
     }
 
 
@@ -384,7 +412,21 @@ class PlayComponent extends Component
                                         {this.state.posisi_kapal_ai_id.map((baris, barisIndex) => (
                                             <tr key={barisIndex}>
                                                 {baris.map((kolom, kolomIndex) => (
-                                                    <td className='cell' key={kolomIndex} onClick={() => this.handleKlikCell(barisIndex, kolomIndex)}></td>
+                                                    <td className='cell' disabled={kolom === '-'} key={kolomIndex} onClick={() => this.handleKlikCell(barisIndex, kolomIndex)}>
+                                                        {kolom === '-' ? (
+                                                            <>
+                                                                <div className='text-center text-secondary'>
+                                                                    <i className="fa-solid fa-circle-dot"></i>
+                                                                </div>
+                                                            </>
+                                                        ) : kolom === 'x' ? (
+                                                            <>
+                                                                <div className='text-center text-danger'>
+                                                                    <i className="fa-solid fa-xmark"></i>
+                                                                </div>
+                                                            </>
+                                                        ) : ''}
+                                                    </td>
                                                 ))}
                                             </tr>
                                         ))}
@@ -406,9 +448,13 @@ class PlayComponent extends Component
 
                             <div className='mt-5'>
                                 <label className="form-label d-block">Giliran Permainan:</label>
-                                <b>Anda</b>
+                                <h3>{this.state.giliran_player ? (
+                                    <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
+                                ) : (
+                                    <span className="badge bg-primary"><i className="fa-solid fa-robot d-inline-block me-1"></i> Komputer</span>
+                                )}</h3>
 
-                                <div class='mt-5'>                                
+                                <div className='mt-5'>                                
                                     <h5>Skill Permainan</h5>
                                 </div>
                             </div>
