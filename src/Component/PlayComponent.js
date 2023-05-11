@@ -48,8 +48,9 @@ class PlayComponent extends Component
                 [null, null, null, null, null, null, null, null],
                 [null, null, null, null, null, null, null, null],
             ],
-
         }
+
+        this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
     }
 
 
@@ -268,11 +269,9 @@ class PlayComponent extends Component
 
     handleMulaiMainGame()
     {
-        console.log(this.state.posisi_kapal_ai_id)
-
-
         this.setState({
-            is_play_game: true
+            is_play_game: true, 
+            posisi_kapal_ai_id: this.randomPosisiMatrixAI()
         });
     }
 
@@ -319,38 +318,114 @@ class PlayComponent extends Component
     }
 
 
+    randomPosisiMatrixAI()
+    {
+        const board_game_size = this.state.board_game_size
+        
+        const SHIPS = [
+            {type: "s", length: 1},
+            {type: "d", length: 3},
+            {type: "c", length: 5}
+        ];
+
+
+        function getRandomInt(max) 
+        {
+            return Math.floor(Math.random() * Math.floor(max));
+        }
+
+
+        function generateMatrix() 
+        {
+            const matrix = new Array(board_game_size).fill(null)
+            .map(() => new Array(board_game_size).fill(null));
+
+            for (const ship of SHIPS) 
+            {
+                let direction = getRandomInt(2); // 0 for horizontal, 1 for vertical
+                let row, col;
+
+                do {
+                    row = getRandomInt(board_game_size);
+                    col = getRandomInt(board_game_size);
+                } while (!canPlaceShip(matrix, row, col, ship.length, direction));
+
+                placeShip(matrix, row, col, ship.type, ship.length, direction);
+            }
+
+            return matrix;
+        }
+
+
+        function canPlaceShip(matrix, row, col, length, direction) 
+        {
+            if ((direction === 0 && col + length > board_game_size) || 
+                (direction === 1 && row + length > board_game_size))
+                return false;
+
+            for (let i = 0; i < length; i++) 
+            {
+                if ((direction === 0 && matrix[row][col + i] !== null) || 
+                    (direction === 1 && matrix[row + i][col] !== null))
+                    return false;
+            }
+
+            return true;
+        }
+
+
+        function placeShip(matrix, row, col, type, length, direction) 
+        {
+            for (let i = 0; i < length; i++) 
+            {
+                if (direction === 0)
+                    matrix[row][col + i] = type;
+                else
+                    matrix[row + i][col] = type;
+            }
+        }
+
+        return generateMatrix();
+    }
+
+
     handleKlikCell(baris, kolom)
     {
-        let coba_array = this.state.posisi_kapal_ai_id;
+        let array_baru = this.state.posisi_kapal_ai_id;
 
-
-        if (this.state.giliran_player && 
-            coba_array[baris][kolom] !== '-' && 
-            coba_array[baris][kolom] !== 'x')
+        if (this.state.giliran_player)
         {
-            if (coba_array[baris][kolom] === 's' || 
-                coba_array[baris][kolom] === 'd' || 
-                coba_array[baris][kolom] === 'c')
-                coba_array[baris][kolom] = 'x'
-            else
-                coba_array[baris][kolom] = '-'
-                
-
-            // Ganti state kalau ada perubahan jadi 'x'
-            this.setState({ 
-                giliran_player: false,
-                posisi_kapal_ai_id: coba_array 
-            });
-
-            
-            setTimeout(() =>
+            if (array_baru[baris][kolom] !== '-' && 
+                array_baru[baris][kolom] !== 'x')
             {
 
-                // Update giliran player
-                this.setState({ giliran_player: true });
+                if (array_baru[baris][kolom] === 's' || 
+                    array_baru[baris][kolom] === 'd' || 
+                    array_baru[baris][kolom] === 'c')
+                {
+                    array_baru[baris][kolom] = 'x'
+                }
+                else
+                {
+                    array_baru[baris][kolom] = '-'
+                    this.setState({ giliran_player: false })
 
-            }, 4000);
-        } 
+
+                    setTimeout(() =>
+                    {
+                        // Pasang AI nya disini
+                        // ...
+
+
+                        this.setState({ giliran_player: true })
+                    }, 4000);
+                }
+                    
+
+                // Ganti state kalau ada perubahan jadi 'x'
+                this.setState({ posisi_kapal_ai_id: array_baru });
+            } 
+        }
     }
 
 
