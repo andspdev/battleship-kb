@@ -414,17 +414,13 @@ class PlayComponent extends Component
                                                 {baris.map((kolom, kolomIndex) => (
                                                     <td className='cell' disabled={kolom === '-'} key={kolomIndex} onClick={() => this.handleKlikCell(barisIndex, kolomIndex)}>
                                                         {kolom === '-' ? (
-                                                            <>
-                                                                <div className='text-center text-secondary'>
-                                                                    <i className="fa-solid fa-circle-dot"></i>
-                                                                </div>
-                                                            </>
+                                                            <div className='text-center text-secondary'>
+                                                                <i className="fa-solid fa-circle-dot"></i>
+                                                            </div>
                                                         ) : kolom === 'x' ? (
-                                                            <>
-                                                                <div className='text-center text-danger'>
-                                                                    <i className="fa-solid fa-xmark"></i>
-                                                                </div>
-                                                            </>
+                                                            <div className='text-center text-danger'>
+                                                                <i className="fa-solid fa-xmark"></i>
+                                                            </div>
                                                         ) : ''}
                                                     </td>
                                                 ))}
