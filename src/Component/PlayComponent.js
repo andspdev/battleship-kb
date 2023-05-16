@@ -3,17 +3,28 @@ import { GlobalContext } from "../States/GlobalProvider";
 import { Link } from 'react-router-dom';
 
 
+
+const panjang_induk = 5
+const panjang_selam = 1
+const panjang_perang = 3
+
+
 class PlayComponent extends Component 
 {
     static contextType = GlobalContext;
 
-
+    static panjang_induk
+    static panjang_selam
+    static panjang_perang
 
     constructor(props)
     {
         super(props)
 
+
+
         this.state = {
+
             // Pengaturan game
             is_play_game: false,
             giliran_player: true,
@@ -27,7 +38,7 @@ class PlayComponent extends Component
                 
                 // Keperluan Atur Papan
                 board_game_size: 8,
-                panjang_kapal: [5, 3, 1],
+                panjang_kapal: [panjang_induk, panjang_perang, panjang_selam],
                 posisi_kapal: [],
                 posisi_kapal_id: [],
 
@@ -37,17 +48,7 @@ class PlayComponent extends Component
                 hideKapalSelam: false,
 
             // AI
-            posisi_kapal_ai: [],
-            posisi_kapal_ai_id: [
-                ['s', null, null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-                [null, 'd', null, 'c', 'c', 'c', 'c', 'c'],
-                [null, 'd', null, null, null, null, null, null],
-                [null, 'd', null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-            ],
+            posisi_kapal_ai_id: [],
         }
 
         this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
@@ -323,9 +324,9 @@ class PlayComponent extends Component
         const board_game_size = this.state.board_game_size
         
         const SHIPS = [
-            {type: "s", length: 1},
-            {type: "d", length: 3},
-            {type: "c", length: 5}
+            {type: "s", length: panjang_selam},
+            {type: "d", length: panjang_perang},
+            {type: "c", length: panjang_induk}
         ];
 
 
@@ -415,10 +416,10 @@ class PlayComponent extends Component
                     {
                         // Pasang AI nya disini
                         // ...
+                        this.komputerYangNembak()
 
-
-                        this.setState({ giliran_player: true })
-                    }, 4000);
+                        
+                    }, 1000);
                 }
                     
 
@@ -427,6 +428,95 @@ class PlayComponent extends Component
             } 
         }
     }
+
+
+
+    komputerYangNembak()
+    {
+        const statePemain = this.state.posisi_kapal_id
+
+        if (!this.state.giliran_player)
+        {
+            let array_baru = statePemain;
+
+            function tembak(baris, kolom)
+            {
+                let statusTembak = "salah"
+            
+                if (baris !== "" && 
+                    kolom !== "" &&
+                    typeof array_baru[baris][kolom] !== "undefined")
+                {
+                    if (array_baru[baris][kolom] !== '-' && 
+                        array_baru[baris][kolom] !== 'x')
+                    {
+                        if (array_baru[baris][kolom] === 's' || 
+                            array_baru[baris][kolom] === 'd' || 
+                            array_baru[baris][kolom] === 'c')
+                        {
+                            // Kalau berhasil nembak
+                            array_baru[baris][kolom] = 'x'
+
+                            statusTembak = "bener"
+                        }
+                        else
+                        {
+                            array_baru[baris][kolom] = '-'
+                        }
+                    }   
+                }
+
+                return statusTembak;
+            }
+
+
+            // Ganti state kalau ada perubahan jadi 'x'
+            this.setState({ posisi_kapal_id: array_baru });
+
+            // Ambil state yang terbaru
+            let kapal_pemain = this.state.posisi_kapal_id
+
+            let statusTembak = ""
+            function tembakAcak() 
+            {
+                const row = Math.floor(Math.random() * 8);
+                const col = Math.floor(Math.random() * 8);
+                const cell = kapal_pemain[row][col];
+                
+                if (cell === "x" || cell === "-")
+                {
+                    statusTembak = tembakAcak();
+                }
+                else
+                {
+                    statusTembak = tembak(row, col);
+                }
+
+                return statusTembak
+            }
+
+
+
+            let cekTembakan = tembakAcak();
+
+            if (cekTembakan === "bener")
+            {
+                while (cekTembakan)
+                {
+                    if (cekTembakan === "salah")
+                    {
+                        this.setState({ giliran_player: true })
+                        break;
+                    }
+
+                    cekTembakan = tembakAcak();
+                }
+            }
+            else
+                this.setState({ giliran_player: true })
+        }
+    }
+
 
 
     isPlayGame()
@@ -459,7 +549,17 @@ class PlayComponent extends Component
                                                         nama_kolom += ' submarine'
 
                                                     return (
-                                                        <td key={kolomIndex} className={nama_kolom}></td>
+                                                        <td key={kolomIndex} className={nama_kolom}>
+                                                            {kolom === '-' ? (
+                                                                <div className='text-center text-secondary'>
+                                                                    <i className="fa-solid fa-circle-dot"></i>
+                                                                </div>
+                                                            ) : kolom === 'x' ? (
+                                                                <div className='text-center text-danger'>
+                                                                    <i className="fa-solid fa-xmark"></i>
+                                                                </div>
+                                                            ) : ''}
+                                                        </td>
                                                     )
                                                 })}
                                             </tr>
