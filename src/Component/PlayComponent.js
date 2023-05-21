@@ -2,6 +2,8 @@ import { Component } from 'react'
 import { GlobalContext } from "../States/GlobalProvider";
 import { Link } from 'react-router-dom';
 
+import BombImage from '../Assets/images/bomb.jpg'
+import TorpedoImage from '../Assets/images/torpedo.jpg'
 
 
 const panjang_induk = 5
@@ -13,9 +15,6 @@ class PlayComponent extends Component
 {
     static contextType = GlobalContext;
 
-    static panjang_induk
-    static panjang_selam
-    static panjang_perang
 
     constructor(props)
     {
@@ -28,6 +27,9 @@ class PlayComponent extends Component
             // Pengaturan game
             is_play_game: false,
             giliran_player: true,
+
+            pesanBerlangsung: '',
+            disablePB_player: false,
 
 
             // Player
@@ -47,11 +49,84 @@ class PlayComponent extends Component
                 hideKapalPerang: false,
                 hideKapalSelam: false,
 
+                
             // AI
-            posisi_kapal_ai_id: [],
+                posisi_kapal_ai_id: [],
+
+
+            // Count down skill
+            countdownSkillBomb: 20,
+            countdownSkillTorpedo: 30,
+
+
+            // Cek buat tenggelam atau engga
+            kapalIndukTotalTersedia_AI: panjang_induk,
+            kapalPerangTotalTersedia_AI: panjang_perang,
+            kapalSelamTotalTersedia_AI: panjang_selam,
+
+
         }
 
         this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
+    }
+
+
+
+    startCountdown() 
+    {
+        // Skill Bomb
+        if (this.state.countdownSkillBomb > 0)
+        {
+            this.countDownBomb = setInterval(() => {
+                this.setState((prevState) => {
+                if (prevState.countdownSkillBomb <= 0) {
+                    clearInterval(this.countDownBomb); // Stop the countdown
+
+                    return prevState;
+                } else {
+                    return { countdownSkillBomb: prevState.countdownSkillBomb - 1 };
+                }
+                });
+            }, 1000);
+        }
+
+
+        
+        // Skill torpedo
+        if (this.state.countdownSkillTorpedo > 0)
+        {
+            this.countDownTorpedo = setInterval(() => {
+                this.setState((prevState) => {
+                if (prevState.countdownSkillTorpedo <= 0) {
+                    clearInterval(this.countDownTorpedo); // Stop the countdown
+                    
+                    return prevState;
+                } else {
+                    return { countdownSkillTorpedo: prevState.countdownSkillTorpedo - 1 };
+                }
+                });
+            }, 1800);
+        }
+    }
+
+
+    pakaiSkillnya(event, tipe)
+    {
+        event.preventDefault();
+
+        switch(tipe)
+        {
+            case 'bomb':
+                alert('Lagi dalam pembuatan.');
+                break;
+
+            case 'torpedo':
+                alert('Dalam pemasangan');
+                break;
+
+            default:
+                alert('Skill tidak ditemukan.')
+        }
     }
 
 
@@ -81,6 +156,7 @@ class PlayComponent extends Component
             );
 
 
+        
 
             // Pilih semua kapal yang ada
             const kumpulan_kapal = document.querySelectorAll('.ship')
@@ -270,10 +346,16 @@ class PlayComponent extends Component
 
     handleMulaiMainGame()
     {
+        const randomPosisiMatrixAI = this.randomPosisiMatrixAI()
+
+        console.log(randomPosisiMatrixAI)
+
         this.setState({
             is_play_game: true, 
-            posisi_kapal_ai_id: this.randomPosisiMatrixAI()
+            posisi_kapal_ai_id: randomPosisiMatrixAI
         });
+
+        this.startCountdown();
     }
 
 
@@ -404,6 +486,97 @@ class PlayComponent extends Component
                     array_baru[baris][kolom] === 'd' || 
                     array_baru[baris][kolom] === 'c')
                 {
+
+                    // Cek buat kapal selam
+                    if (array_baru[baris][kolom] === 's')
+                    {
+                        const kapalSelamTotalTersedia = this.state.kapalSelamTotalTersedia_AI - 1
+
+                        this.setState({
+                            kapalSelamTotalTersedia_AI: kapalSelamTotalTersedia
+                        });
+
+
+                        if (kapalSelamTotalTersedia === 0)
+                        {
+                            this.setState({
+                                pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal selam musuh.',
+                                giliran_player: false,
+                                disablePB_player: true,
+                                pesanBerlangsungKapalSelam_AI: false
+                            });
+
+                            setTimeout(function() 
+                            {
+                                this.setState({ 
+                                    pesanBerlangsung: '',
+                                    disablePB_player: false,
+                                    giliran_player: true
+                                });
+                            }.bind(this), 3000);
+                        }
+                    }
+                    
+
+                    // Cek buat kapal perang
+                    if (array_baru[baris][kolom] === 'd')
+                    {
+                        this.setState((prevState) => ({
+                            kapalPerangTotalTersedia_AI: prevState.kapalPerangTotalTersedia_AI - 1
+                        }));
+
+
+                        if (this.state.kapalPerangTotalTersedia_AI === 1)
+                        {
+                            this.setState({
+                                pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal perang musuh.',
+                                giliran_player: false, 
+                                disablePB_player: true,
+                                pesanBerlangsungKapalPerang_AI: false
+                            });
+
+                            setTimeout(function() 
+                            {
+                                this.setState({ 
+                                    pesanBerlangsung: '',
+                                    giliran_player: true,
+                                    disablePB_player: false
+                                });
+                            }.bind(this), 3000);
+                        }
+                    }
+                    
+
+                    // Cek buat kapal induk
+                    if (array_baru[baris][kolom] === 'c')
+                    {
+                        this.setState((prevState) => ({
+                            kapalIndukTotalTersedia_AI: prevState.kapalIndukTotalTersedia_AI - 1
+                        }));
+
+
+                        if (this.state.kapalIndukTotalTersedia_AI === 1)
+                        {
+                            this.setState({
+                                pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal induk musuh.',
+                                giliran_player: false, 
+                                disablePB_player: true,
+                                pesanBerlangsungKapalInduk_AI: false
+                            });
+
+                            setTimeout(function() 
+                            {
+                                this.setState({ 
+                                    pesanBerlangsung: '',
+                                    disablePB_player: false,
+                                    giliran_player: true
+                                });
+                            }.bind(this), 3000);
+                        }
+                    }
+
+
+                    // Ganti ke 'x' kalau udh kena tembak
                     array_baru[baris][kolom] = 'x'
                 }
                 else
@@ -415,7 +588,6 @@ class PlayComponent extends Component
                     setTimeout(() =>
                     {
                         // Pasang AI nya disini
-                        // ...
                         this.komputerYangNembak()
 
                         
@@ -519,8 +691,20 @@ class PlayComponent extends Component
 
 
 
+    tampilanMenang()
+    {
+        return(
+            <>
+                <h1>Yee Menang!</h1>
+            </>
+        )
+    }
+
+
+    
     isPlayGame()
     {
+        
         return(
             <div className='mt-2'>
                 <div className="row">
@@ -617,17 +801,85 @@ class PlayComponent extends Component
                             <h2>Permainan</h2>
                             <p>Informasi mengenai permainan dan skill yang akan di pakai nantinya.</p>
 
-                            <div className='mt-5'>
+                            <div className='mt-4'>
                                 <label className="form-label d-block">Giliran Permainan:</label>
-                                <h3>{this.state.giliran_player ? (
-                                    <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
-                                ) : (
-                                    <span className="badge bg-primary"><i className="fa-solid fa-robot d-inline-block me-1"></i> Komputer</span>
-                                )}</h3>
+                                <h3>
+                                    {
+                                        this.state.disablePB_player ? (
+                                            <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
+                                        ) : this.state.giliran_player ? (
+                                            <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
+                                        ) : (
+                                            <span className="badge bg-primary"><i className="fa-solid fa-robot d-inline-block me-1"></i> Komputer</span>
+                                        )
+                                    }
+                                </h3>
 
-                                <div className='mt-5'>                                
+                                <div className='mt-4'>                                
                                     <h5>Skill Permainan</h5>
+
+                                    <div className='mt-2 skill-permainan d-flex'>
+
+                                        <div className='me-2'>
+                                            <div className='items'>
+                                                <div className={this.state.countdownSkillBomb === 0 ? 'open' : 'disabled'}>
+
+                                                {this.state.countdownSkillBomb > 0 ? (
+                                                    <>
+                                                        <img src={BombImage} alt="Bom Mines"/>
+                                                        <p>Ranjau</p>
+                                                    </>
+                                                ) : (
+                                                    <a href="#bomb" onClick={(e) => this.pakaiSkillnya(e, 'bomb')}>
+                                                        <img src={BombImage} alt="Bom Mines"/>
+                                                        <p>Ranjau</p>
+                                                    </a>
+                                                )}
+
+                                                
+                                                </div>
+
+                                                {this.state.countdownSkillBomb > 0 ? (
+                                                    <span className='counter'>{this.state.countdownSkillBomb}s</span>
+                                                ) : ''}
+                                            </div>
+                                        </div>
+
+                                        <div className='mx-2'>
+                                            <div className='items'>
+                                                <div className={this.state.countdownSkillTorpedo === 0 ? 'open' : 'disabled'}>
+                                                    {this.state.countdownSkillTorpedo > 0 ? (
+                                                        <>
+                                                            <img src={TorpedoImage} alt="Torpedo"/>
+                                                            <p>Torpedo</p>
+                                                        </>
+                                                    ) : (
+                                                        <a href="#torpedo" onClick={(e) => this.pakaiSkillnya(e, 'torpedo')}>
+                                                            <img src={TorpedoImage} alt="Torpedo"/>
+                                                            <p>Torpedo</p>
+                                                        </a>
+                                                    )}
+                                                </div>
+
+                                                {this.state.countdownSkillTorpedo > 0 ? (
+                                                    <span className='counter'>{this.state.countdownSkillTorpedo}s</span>
+                                                ) : ''}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+
+                                {this.state.pesanBerlangsung !== '' ? (
+                                    <div className='mt-4 text-center'>
+
+                                        <div className='alert alert-warning'>
+                                            <h4>Berlangsung</h4>
+                                            <div dangerouslySetInnerHTML={{__html: this.state.pesanBerlangsung}}></div>
+                                        </div>
+                                    </div>
+                                ) : ''}
+
                             </div>
                         </div>
                     </div>
@@ -644,157 +896,169 @@ class PlayComponent extends Component
 
         if (globalState.isPlay)
         {
-
-            let outputTableCell = '';
-            for (let x = 0; x < this.state.board_game_size; x++)
+            if (this.state.kapalIndukTotalTersedia_AI === 0 &&
+                this.state.kapalPerangTotalTersedia_AI === 0 &&
+                this.state.kapalSelamTotalTersedia_AI === 0)
             {
-                outputTableCell += '<tr>'
-                
-                for (let y = 0; y < this.state.board_game_size; y++)
-                    outputTableCell += '<td class="cell"></td>'
-
-                outputTableCell += '</tr>'
+                return(
+                    <>
+                        {this.tampilanMenang()}
+                    </>
+                )
             }
-            
-            return(
-                <>
-                    <div className="container my-5" id="play-board">
-                        <div className="menu-back mb-5">
-                            <Link to="/" className='back-button'>
-                                <i className="fa-solid fa-arrow-left"></i> <span>Kembali</span>
-                            </Link>
-                        </div>
+            else
+            {
+                let outputTableCell = '';
+                for (let x = 0; x < this.state.board_game_size; x++)
+                {
+                    outputTableCell += '<tr>'
+                    
+                    for (let y = 0; y < this.state.board_game_size; y++)
+                        outputTableCell += '<td class="cell"></td>'
+
+                    outputTableCell += '</tr>'
+                }
+                
+                return(
+                    <>
+                        <div className="container my-5" id="play-board">
+                            <div className="menu-back mb-5">
+                                <Link to="/" className='back-button'>
+                                    <i className="fa-solid fa-arrow-left"></i> <span>Kembali</span>
+                                </Link>
+                            </div>
 
 
-                        {!this.state.is_play_game ? (
-                            <div className='mt-2' style={{maxWidth: '900px', margin: 'auto'}}>
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <div style={{maxWidth: '400px', margin: 'auto'}}>
-                                            <h2>Papan Main</h2>
-                                            <p>Silakan posisikan letak kapal Anda terlebih dahulu di papan bawah ini:</p>
+                            {!this.state.is_play_game ? (
+                                <div className='mt-2' style={{maxWidth: '900px', margin: 'auto'}}>
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                                <h2>Papan Main</h2>
+                                                <p>Silakan posisikan letak kapal Anda terlebih dahulu di papan bawah ini:</p>
 
-                                            <div className="mt-5">
-                                                <table id="papan-main">
-                                                    <tbody dangerouslySetInnerHTML={{__html: outputTableCell}}></tbody>
-                                                </table>
+                                                <div className="mt-5">
+                                                    <table id="papan-main">
+                                                        <tbody dangerouslySetInnerHTML={{__html: outputTableCell}}></tbody>
+                                                    </table>
 
-                                                <div className='mt-2'>
-                                                    <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                                    <div className='mt-2'>
+                                                        <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
 
-                                    <div className="col-md-6">
-                                        <div style={{maxWidth: '400px', margin: 'auto'}}>
-                                            <h2>Pilih Kapal</h2>
-                                            <p><i>Drag and drop</i> kapal di bawah ini ke papan main, 
-                                            serta atur vertikal atau horizontalnya dengan klik pada bagian kapal:</p>
+                                        <div className="col-md-6">
+                                            <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                                <h2>Pilih Kapal</h2>
+                                                <p><i>Drag and drop</i> kapal di bawah ini ke papan main, 
+                                                serta atur vertikal atau horizontalnya dengan klik pada bagian kapal:</p>
 
 
-                                            <div className="mt-5">
-                                                <div className="col-12 mb-3">
-                                                    
-                                                    <div className="row">
-                                                        <div className='col-md-4 mb-3'>Kapal Induk</div>
-                                                        <div className='col-md-8 mb-3'>
+                                                <div className="mt-5">
+                                                    <div className="col-12 mb-3">
+                                                        
+                                                        <div className="row">
+                                                            <div className='col-md-4 mb-3'>Kapal Induk</div>
+                                                            <div className='col-md-8 mb-3'>
 
-                                                            <div style={{display: !this.state.hideKapalInduk ? 'block' : 'none'}}>
-                                                                <div className={this.state.rotasiKapalInduk === 'horizontal' ? 'ship horizontal bg-induk' : 'ship vertical bg-induk'} 
-                                                                onClick={() => this.rotateKapal('induk')} id="carrier" data-id="1" draggable="true">
-                                                                    <div></div>
-                                                                    <div></div>
-                                                                    <div></div>
-                                                                    <div></div>
-                                                                    <div></div>
+                                                                <div style={{display: !this.state.hideKapalInduk ? 'block' : 'none'}}>
+                                                                    <div className={this.state.rotasiKapalInduk === 'horizontal' ? 'ship horizontal bg-induk' : 'ship vertical bg-induk'} 
+                                                                    onClick={() => this.rotateKapal('induk')} id="carrier" data-id="1" draggable="true">
+                                                                        <div></div>
+                                                                        <div></div>
+                                                                        <div></div>
+                                                                        <div></div>
+                                                                        <div></div>
+                                                                    </div>
                                                                 </div>
+
+                                                                {this.state.hideKapalInduk ? (
+                                                                    <>
+                                                                        <i className="fa-solid fa-ship text-secondary"></i> Siap!
+                                                                    </>
+                                                                ) : ''}
                                                             </div>
-
-                                                            {this.state.hideKapalInduk ? (
-                                                                <>
-                                                                    <i className="fa-solid fa-ship text-secondary"></i> Siap!
-                                                                </>
-                                                            ) : ''}
                                                         </div>
-                                                    </div>
-                                                    
+                                                        
 
-                                                </div>
-
-                                                <div className="col-12 mb-3">
-
-                                                    <div className="row">
-                                                        <div className='col-md-4 mb-3'>Kapal Perang</div>
-                                                        <div className='col-md-8 mb-3'>
-
-                                                            <div style={{display: !this.state.hideKapalPerang ? 'block' : 'none'}}>
-                                                                <div className={this.state.rotasiKapalPerang === 'horizontal' ? 'ship horizontal bg-perang' : 'ship vertical bg-perang'} 
-                                                                onClick={() => this.rotateKapal('perang')} id="destroyer" data-id="2" draggable="true">
-                                                                    <div></div>
-                                                                    <div></div>
-                                                                    <div></div>
-                                                                </div>
-                                                            </div>
-
-                                                            {this.state.hideKapalPerang ? (
-                                                                <>
-                                                                    <i className="fa-solid fa-ship text-success"></i> Siap!
-                                                                </>
-                                                            ) : ''}
-                                                        </div>
                                                     </div>
 
-                                                </div>
+                                                    <div className="col-12 mb-3">
 
-                                                <div className="col-12 mb-3">
-                                                    <div className="row">
-                                                        <div className='col-md-4 mb-3'>Kapal Selam</div>
-                                                        <div className='col-md-8 mb-3'>
+                                                        <div className="row">
+                                                            <div className='col-md-4 mb-3'>Kapal Perang</div>
+                                                            <div className='col-md-8 mb-3'>
 
-                                                            <div style={{display: !this.state.hideKapalSelam ? 'block' : 'none'}}>
-                                                                <div className={this.state.rotasiKapalSelam === 'horizontal' ? 'ship horizontal bg-selam' : 'ship vertical bg-selam'} 
-                                                                onClick={() => this.rotateKapal('selam')} id="submarine" data-id="3" draggable="true">
-                                                                    <div></div>
+                                                                <div style={{display: !this.state.hideKapalPerang ? 'block' : 'none'}}>
+                                                                    <div className={this.state.rotasiKapalPerang === 'horizontal' ? 'ship horizontal bg-perang' : 'ship vertical bg-perang'} 
+                                                                    onClick={() => this.rotateKapal('perang')} id="destroyer" data-id="2" draggable="true">
+                                                                        <div></div>
+                                                                        <div></div>
+                                                                        <div></div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
 
-                                                            {this.state.hideKapalSelam ? (
-                                                                <>
-                                                                    <i className="fa-solid fa-ship text-primary"></i> Siap!
-                                                                </>
-                                                            ) : ''}
+                                                                {this.state.hideKapalPerang ? (
+                                                                    <>
+                                                                        <i className="fa-solid fa-ship text-success"></i> Siap!
+                                                                    </>
+                                                                ) : ''}
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div className="col-12 mb-3">
+                                                        <div className="row">
+                                                            <div className='col-md-4 mb-3'>Kapal Selam</div>
+                                                            <div className='col-md-8 mb-3'>
+
+                                                                <div style={{display: !this.state.hideKapalSelam ? 'block' : 'none'}}>
+                                                                    <div className={this.state.rotasiKapalSelam === 'horizontal' ? 'ship horizontal bg-selam' : 'ship vertical bg-selam'} 
+                                                                    onClick={() => this.rotateKapal('selam')} id="submarine" data-id="3" draggable="true">
+                                                                        <div></div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {this.state.hideKapalSelam ? (
+                                                                    <>
+                                                                        <i className="fa-solid fa-ship text-primary"></i> Siap!
+                                                                    </>
+                                                                ) : ''}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
+
+
+                                                {this.state.posisi_kapal.length === this.state.panjang_kapal.length ? (
+                                                    <div className="my-3 py-4 text-center">
+                                                        <h4>Sudah Siap?</h4>
+                                                        
+                                                        <div className='mt-4'>
+                                                            <button type='button' className="btn mb-2" onClick={() => this.aturUlangLetak()}>
+                                                                <i className="fa-solid fa-rotate-right"></i> Atur Ulang
+                                                            </button>
+
+                                                            <button type='button' className="btn btn-mulai-main bg-success text-white mb-2" id="mulai-gamenya" onClick={() => this.handleMulaiMainGame()}>
+                                                                <i className="fa-solid fa-play"></i> Mulai!
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : ''}
+                                                
                                             </div>
-
-
-                                            {this.state.posisi_kapal.length === this.state.panjang_kapal.length ? (
-                                                <div className="my-3 py-4 text-center">
-                                                    <h4>Sudah Siap?</h4>
-                                                    
-                                                    <div className='mt-4'>
-                                                        <button type='button' className="btn mb-2" onClick={() => this.aturUlangLetak()}>
-                                                            <i className="fa-solid fa-rotate-right"></i> Atur Ulang
-                                                        </button>
-
-                                                        <button type='button' className="btn btn-mulai-main bg-success text-white mb-2" id="mulai-gamenya" onClick={() => this.handleMulaiMainGame()}>
-                                                            <i className="fa-solid fa-play"></i> Mulai!
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ) : ''}
-                                            
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : this.isPlayGame()}
-                    </div>
-                </>
-            )
+                            ) : this.isPlayGame()}
+                        </div>
+                    </>
+                )
+            }
         }
     }
 }

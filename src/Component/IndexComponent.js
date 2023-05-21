@@ -28,8 +28,7 @@ class IndexComponent extends Component
 							Klik tombol dibawah untuk memainkannya.
 						</div>
 
-						<div className="mt-4 pt-2">
-							<Link to="/settings" className="btn"><i className="fa-solid fa-gear"></i> Pengaturan</Link>                    
+						<div className="mt-4 pt-2">                   
 							<Link to="/play" className="btn btn-main" onClick={() => this.handlePlayGame()}><i className="fa-solid fa-ship"></i> Main Sekarang!</Link>
 						</div>
 					</div>

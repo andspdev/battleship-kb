@@ -187,3 +187,58 @@ a {
 .bg-induk div:first-child {
     background: #555c63
 }
+
+
+
+.skill-permainan .items {
+    display: flex;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    padding: 5px 12px;
+    align-items: center;
+    border-radius: 8px;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+    position: relative;
+}
+
+.skill-permainan a,
+.skill-permainan a:hover,
+.skill-permainan a:focus {
+    color: #333;
+}
+
+.skill-permainan .items p {
+    margin-bottom: 5px;
+    margin-left: 6px;
+    display: inline-block;
+}
+
+.skill-permainan .disabled {
+    cursor: not-allowed;
+    opacity: 0.08;
+}
+
+.skill-permainan .items img {
+    width: 40px;
+    height: 40px;
+}
+
+.skill-permainan .items:first-child {
+    margin-left: 0;
+}
+
+.skill-permainan small {
+    display: inline-block;
+    font-size: 12px;
+}
+
+.skill-permainan .items span.counter {
+    font-size: 25px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    color:#a51331
+}
