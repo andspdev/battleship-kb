@@ -54,17 +54,22 @@ class PlayComponent extends Component
                 posisi_kapal_ai_id: [],
 
 
+
             // Count down skill
             countdownSkillBomb: 20,
             countdownSkillTorpedo: 30,
 
 
+            
             // Cek buat tenggelam atau engga
             kapalIndukTotalTersedia_AI: panjang_induk,
             kapalPerangTotalTersedia_AI: panjang_perang,
             kapalSelamTotalTersedia_AI: panjang_selam,
 
 
+            kapalIndukTotalTersedia_Player: panjang_induk,
+            kapalPerangTotalTersedia_Player: panjang_perang,
+            kapalSelamTotalTersedia_Player: panjang_selam
         }
 
         this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
@@ -701,7 +706,7 @@ class PlayComponent extends Component
     }
 
 
-    
+
     isPlayGame()
     {
         
