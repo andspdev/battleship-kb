@@ -2,13 +2,15 @@ import { Component } from 'react'
 import { GlobalContext } from "../States/GlobalProvider";
 import { Link } from 'react-router-dom';
 
-import BombImage from '../Assets/images/bomb.jpg'
+// import BombImage from '../Assets/images/bomb.jpg'
 import TorpedoImage from '../Assets/images/torpedo.jpg'
-
 
 const panjang_induk = 5
 const panjang_selam = 1
 const panjang_perang = 3
+
+const delaySkillRanjau = 20
+const delaySkillTorpedo = 1
 
 
 class PlayComponent extends Component 
@@ -56,8 +58,8 @@ class PlayComponent extends Component
 
 
             // Count down skill
-            countdownSkillBomb: 20,
-            countdownSkillTorpedo: 30,
+            countdownSkillBomb: delaySkillRanjau,
+            countdownSkillTorpedo: delaySkillTorpedo,
 
 
             
@@ -69,7 +71,14 @@ class PlayComponent extends Component
 
             kapalIndukTotalTersedia_Player: panjang_induk,
             kapalPerangTotalTersedia_Player: panjang_perang,
-            kapalSelamTotalTersedia_Player: panjang_selam
+            kapalSelamTotalTersedia_Player: panjang_selam,
+
+
+
+            // Pemakaian Skill Torpedo
+            tipePosisiTorpedo: 'baris',
+            targetPosisiTorpedo: '',
+            showPopupSKill: false
         }
 
         this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
@@ -79,40 +88,50 @@ class PlayComponent extends Component
 
     startCountdown() 
     {
-        // Skill Bomb
-        if (this.state.countdownSkillBomb > 0)
-        {
-            this.countDownBomb = setInterval(() => {
-                this.setState((prevState) => {
-                if (prevState.countdownSkillBomb <= 0) {
-                    clearInterval(this.countDownBomb); // Stop the countdown
-
-                    return prevState;
-                } else {
-                    return { countdownSkillBomb: prevState.countdownSkillBomb - 1 };
-                }
-                });
-            }, 1000);
-        }
+        this.countDownSkillRanjau();
+        this.countDownSkillTorpedo();
+    }
 
 
-        
+
+
+    countDownSkillTorpedo()
+    {
         // Skill torpedo
-        if (this.state.countdownSkillTorpedo > 0)
+        this.countDownTorpedo = setInterval(() => 
         {
-            this.countDownTorpedo = setInterval(() => {
-                this.setState((prevState) => {
+            this.setState((prevState) => 
+            {
                 if (prevState.countdownSkillTorpedo <= 0) {
-                    clearInterval(this.countDownTorpedo); // Stop the countdown
+                    clearInterval(this.countDownTorpedo);
                     
                     return prevState;
                 } else {
                     return { countdownSkillTorpedo: prevState.countdownSkillTorpedo - 1 };
                 }
-                });
-            }, 1800);
-        }
+            });
+        }, 1800);
     }
+
+
+    countDownSkillRanjau()
+    {
+        /// Skill Bomb
+        this.countDownBomb = setInterval(() => 
+        {
+            this.setState((prevState) => 
+            {
+                if (prevState.countdownSkillBomb <= 0) {
+                    clearInterval(this.countDownBomb);
+
+                    return prevState;
+                } else {
+                    return { countdownSkillBomb: prevState.countdownSkillBomb - 1 };
+                }
+            });
+        }, 1000);
+    }
+
 
 
     pakaiSkillnya(event, tipe)
@@ -126,13 +145,324 @@ class PlayComponent extends Component
                 break;
 
             case 'torpedo':
-                alert('Dalam pemasangan');
+                if (this.state.countdownSkillTorpedo === 0)
+                {
+                    this.setState({ showPopupSKill: true })
+                }
                 break;
 
             default:
                 alert('Skill tidak ditemukan.')
         }
     }
+
+
+
+
+
+    cancelPopupSkill()
+    {
+        this.setState({ showPopupSKill: false })
+    }
+
+    
+
+    isValiddateKoordinat(row, col)
+    {
+        const state_main = this.state;
+        return row >= 0 && row < state_main.board_game_size && col >= 0 && col < state_main.board_game_size;
+    }
+
+
+
+    // function buat tembah kolom secara penuh
+    tembakKolomPenuh = (kol, tipe = "player") =>
+    {
+        // list array terbaru
+        let board_array = this.state.posisi_kapal_ai_id;
+        if (tipe === "ai")
+        {
+            board_array = this.state.posisi_kapal_id;
+        }
+
+
+        if (this.isValiddateKoordinat(0, kol))
+        {
+
+            // cari dan ganti value jadi 'x'
+            for (let row = 0; row < this.state.board_game_size; row++)
+            {
+                if (board_array[row][kol] !== 'x')
+                {
+                    if (board_array[row][kol] === 's' || 
+                    board_array[row][kol] === 'd' || 
+                    board_array[row][kol] === 'c')
+                    {
+
+                        if (tipe === "player")
+                        {
+                            this.pesanBerlangsungPlayer(board_array, row, kol);
+                        }
+                        else
+                        {
+                            this.pesanBerlangsungAI(board_array, row, kol, true);
+                        }
+
+
+                        board_array[row][kol] = 'x'
+                    }
+                    else
+                    {
+                        board_array[row][kol] = '-'
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    tembakBarisPenuh = (row, tipe = "player") =>
+    {
+        // list array terbaru
+        let board_array = this.state.posisi_kapal_ai_id;
+        if (tipe === "ai")
+        {
+            board_array = this.state.posisi_kapal_id;
+        }
+
+
+
+        if (this.isValiddateKoordinat(row, 0))
+        {
+            for (let col = 0; col < this.state.board_game_size; col++)
+            {
+                if (board_array[row][col] !== 'x')
+                {
+                    if (board_array[row][col] === 's' || 
+                    board_array[row][col] === 'd' || 
+                    board_array[row][col] === 'c')
+                    {
+                        if (tipe === "player")
+                        {
+                            this.pesanBerlangsungPlayer(board_array, row, col);
+                        }
+                        else
+                        {
+                            this.pesanBerlangsungAI(board_array, row, col, true);
+                        }
+
+                        board_array[row][col] = 'x';
+                    }
+                    else
+                    {
+                        board_array[row][col] = '-'
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+
+    // Skill Player (--- Torpedonya ---)
+    tembakTorpedonya_player() 
+    {
+        let posisiYangDItembak = ["baris", "kolom"];
+
+        const posisi_tembak = this.state.tipePosisiTorpedo;
+        const target_value = this.state.targetPosisiTorpedo;
+
+
+        let isTargetFull = false;
+        if (target_value >= 0 && target_value <= 7)
+        {
+            // Cek baris/kolom mana aja yang masih ada kosongnya
+            let count = 0;
+            if (posisi_tembak === "baris")
+            {
+                for (let column = 0; column < this.state.board_game_size; column++) 
+                {
+                    if (this.state.posisi_kapal_ai_id[this.state.targetPosisiTorpedo][column] === "-" || 
+                        this.state.posisi_kapal_ai_id[this.state.targetPosisiTorpedo][column] === "x")
+                    {
+                        count++;
+                    }
+                }
+            }
+            else if (posisi_tembak === "kolom")
+            {
+                for (let row = 0; row < this.state.board_game_size; row++) 
+                {
+                    if (this.state.posisi_kapal_ai_id[row][this.state.targetPosisiTorpedo] === "-" || 
+                        this.state.posisi_kapal_ai_id[row][this.state.targetPosisiTorpedo] === "x")
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            isTargetFull = (count === this.state.board_game_size)
+        }
+
+
+        if (!posisiYangDItembak.includes(posisi_tembak))
+        {
+            alert('Pilih posisi tembak yang tersedia!');
+        }
+        else if (!(/^\d+$/.test(target_value)))
+        {
+            alert('Posisi tembak harus berupa angka atau angka positif!');
+        }
+        else if (parseInt(target_value) < 0 || 
+            parseInt(target_value) > (this.state.board_game_size - 1))
+        {
+            alert('Posisi tembak harus di antara 0 - 7');
+        }
+        else if (isTargetFull)
+        {
+            alert('Silakan pilih posisi yang tidak terisi semua.')
+        }
+        else
+        {
+            
+            // Mulai ke posisi targetnya
+            if (this.state.tipePosisiTorpedo === "baris")
+            {
+                this.tembakBarisPenuh(this.state.targetPosisiTorpedo, "player");
+            }
+            else if (this.state.tipePosisiTorpedo === "kolom")
+            {
+                this.tembakKolomPenuh(this.state.targetPosisiTorpedo, "player")
+            }
+            else
+            {
+                alert('Kesalahan dalam pengelolahan data penembakan!');
+            }
+
+
+            this.setState({ 
+                giliran_player: false, 
+                showPopupSKill: false,
+                countdownSkillTorpedo: delaySkillTorpedo,
+                tipePosisiTorpedo: 'baris',
+                targetPosisiTorpedo: '' 
+            });
+
+            this.countDownSkillTorpedo();
+            setTimeout(() => this.tembakTorpedonya_AI(), 1200);
+        }
+    }
+
+
+
+
+    tembakTorpedonya_AI()
+    {
+        // -------- Cek klom yang nullnya banyak ------------
+        let countKolomNull = 0;
+        let kolomKeBerapa = -1;
+
+
+        let board_array = this.state.posisi_kapal_id;
+
+
+        // Cari board yang nullnya banyak
+        for (let j = 0; j < board_array[0].length; j++)
+        {
+            let hitungNullnya = 0;
+
+            for (let i = 0; i < board_array.length; i++)
+            {
+                if (board_array[i][j] === null)
+                {
+                    hitungNullnya++; // count jadi ++
+                }
+            }
+
+            // Bandingkan
+            if (hitungNullnya > countKolomNull) {
+                countKolomNull = hitungNullnya;
+                kolomKeBerapa = j; // Cek lokasi kolomnya yg mana
+            }
+        }
+
+
+
+        // Cek baris yang nullnya banyak
+        let countBarisNull = 0;
+        let barisKeBerapa = -1;
+
+        for (let i = 0; i < board_array.length; i++)
+        {
+            let hitungNullnya = 0;
+
+            for (let j = 0; j < board_array[i].length; j++)
+            {
+                if (board_array[i][j] === null)
+                {
+                    hitungNullnya++;
+                }
+            }
+
+            if (hitungNullnya > countBarisNull)
+            {
+                countBarisNull = hitungNullnya;
+                barisKeBerapa = i;
+            }
+        }
+
+
+        // Cek penentuan AI nya nembak yang mana?
+        // yang besasr null nya di tembak disitu
+        let tipeYangDitembak = '';
+        let posisiYangDitembak = '';
+
+        // Random tipe yang ditembak
+        if (countBarisNull > countKolomNull)
+        {
+            tipeYangDitembak = 'baris';
+            posisiYangDitembak = barisKeBerapa;
+        }
+        else
+        {
+            tipeYangDitembak = 'kolom';
+            posisiYangDitembak = kolomKeBerapa;
+        }
+
+
+
+        // Nah baru ditembak disini
+        if (tipeYangDitembak === "kolom")
+        {
+            this.tembakKolomPenuh(posisiYangDitembak, "ai")
+        }
+        else if (tipeYangDitembak === "baris")
+        {
+            this.tembakBarisPenuh(posisiYangDitembak, "ai");
+        }
+        else
+        {
+            alert('Terjadi kesalahan saat menggunakan skill Torpedo!')
+        }
+
+
+        this.setState({ giliran_player: true })
+    }
+
+
+
+
+
+
 
 
     componentDidMount()
@@ -491,94 +821,8 @@ class PlayComponent extends Component
                     array_baru[baris][kolom] === 'd' || 
                     array_baru[baris][kolom] === 'c')
                 {
-
-                    // Cek buat kapal selam
-                    if (array_baru[baris][kolom] === 's')
-                    {
-                        const kapalSelamTotalTersedia = this.state.kapalSelamTotalTersedia_AI - 1
-
-                        this.setState({
-                            kapalSelamTotalTersedia_AI: kapalSelamTotalTersedia
-                        });
-
-
-                        if (kapalSelamTotalTersedia === 0)
-                        {
-                            this.setState({
-                                pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal selam musuh.',
-                                giliran_player: false,
-                                disablePB_player: true,
-                                pesanBerlangsungKapalSelam_AI: false
-                            });
-
-                            setTimeout(function() 
-                            {
-                                this.setState({ 
-                                    pesanBerlangsung: '',
-                                    disablePB_player: false,
-                                    giliran_player: true
-                                });
-                            }.bind(this), 3000);
-                        }
-                    }
                     
-
-                    // Cek buat kapal perang
-                    if (array_baru[baris][kolom] === 'd')
-                    {
-                        this.setState((prevState) => ({
-                            kapalPerangTotalTersedia_AI: prevState.kapalPerangTotalTersedia_AI - 1
-                        }));
-
-
-                        if (this.state.kapalPerangTotalTersedia_AI === 1)
-                        {
-                            this.setState({
-                                pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal perang musuh.',
-                                giliran_player: false, 
-                                disablePB_player: true,
-                                pesanBerlangsungKapalPerang_AI: false
-                            });
-
-                            setTimeout(function() 
-                            {
-                                this.setState({ 
-                                    pesanBerlangsung: '',
-                                    giliran_player: true,
-                                    disablePB_player: false
-                                });
-                            }.bind(this), 3000);
-                        }
-                    }
-                    
-
-                    // Cek buat kapal induk
-                    if (array_baru[baris][kolom] === 'c')
-                    {
-                        this.setState((prevState) => ({
-                            kapalIndukTotalTersedia_AI: prevState.kapalIndukTotalTersedia_AI - 1
-                        }));
-
-
-                        if (this.state.kapalIndukTotalTersedia_AI === 1)
-                        {
-                            this.setState({
-                                pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal induk musuh.',
-                                giliran_player: false, 
-                                disablePB_player: true,
-                                pesanBerlangsungKapalInduk_AI: false
-                            });
-
-                            setTimeout(function() 
-                            {
-                                this.setState({ 
-                                    pesanBerlangsung: '',
-                                    disablePB_player: false,
-                                    giliran_player: true
-                                });
-                            }.bind(this), 3000);
-                        }
-                    }
+                    this.pesanBerlangsungPlayer(array_baru, baris, kolom);
 
 
                     // Ganti ke 'x' kalau udh kena tembak
@@ -587,16 +831,8 @@ class PlayComponent extends Component
                 else
                 {
                     array_baru[baris][kolom] = '-'
-                    this.setState({ giliran_player: false })
-
-
-                    setTimeout(() =>
-                    {
-                        // Pasang AI nya disini
-                        this.komputerYangNembak()
-
-                        
-                    }, 1000);
+                    this.setState({ giliran_player: false });
+                    this.komputerYangNembak();
                 }
                     
 
@@ -608,90 +844,285 @@ class PlayComponent extends Component
 
 
 
-    komputerYangNembak()
+    pesanBerlangsungPlayer(array_baru, baris, kolom)
     {
-        const statePemain = this.state.posisi_kapal_id
+        const waktuDelayPesan = 2500;
 
-        if (!this.state.giliran_player)
+
+        // Cek buat kapal selam
+        if (array_baru[baris][kolom] === 's')
         {
-            let array_baru = statePemain;
+            const kapalSelamTotalTersedia = this.state.kapalSelamTotalTersedia_AI - 1
 
-            function tembak(baris, kolom)
+            this.setState({
+                kapalSelamTotalTersedia_AI: kapalSelamTotalTersedia
+            });
+
+
+            if (kapalSelamTotalTersedia === 0)
             {
-                let statusTembak = "salah"
-            
-                if (baris !== "" && 
-                    kolom !== "" &&
-                    typeof array_baru[baris][kolom] !== "undefined")
+                this.setState({
+                    pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal selam musuh.',
+                    giliran_player: false,
+                    disablePB_player: true,
+                    pesanBerlangsungKapalSelam_AI: false
+                });
+
+                setTimeout(function() 
                 {
-                    if (array_baru[baris][kolom] !== '-' && 
-                        array_baru[baris][kolom] !== 'x')
-                    {
-                        if (array_baru[baris][kolom] === 's' || 
-                            array_baru[baris][kolom] === 'd' || 
-                            array_baru[baris][kolom] === 'c')
-                        {
-                            // Kalau berhasil nembak
-                            array_baru[baris][kolom] = 'x'
-
-                            statusTembak = "bener"
-                        }
-                        else
-                        {
-                            array_baru[baris][kolom] = '-'
-                        }
-                    }   
-                }
-
-                return statusTembak;
+                    this.setState({ 
+                        pesanBerlangsung: '',
+                        disablePB_player: false,
+                        giliran_player: true
+                    });
+                }.bind(this), waktuDelayPesan);
             }
+        }
+        
+
+        // Cek buat kapal perang
+        if (array_baru[baris][kolom] === 'd')
+        {
+            this.setState((prevState) => ({
+                kapalPerangTotalTersedia_AI: prevState.kapalPerangTotalTersedia_AI - 1
+            }));
 
 
-            // Ganti state kalau ada perubahan jadi 'x'
-            this.setState({ posisi_kapal_id: array_baru });
-
-            // Ambil state yang terbaru
-            let kapal_pemain = this.state.posisi_kapal_id
-
-            let statusTembak = ""
-            function tembakAcak() 
+            if (this.state.kapalPerangTotalTersedia_AI === 1)
             {
-                const row = Math.floor(Math.random() * 8);
-                const col = Math.floor(Math.random() * 8);
-                const cell = kapal_pemain[row][col];
+                this.setState({
+                    pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal perang musuh.',
+                    giliran_player: false, 
+                    disablePB_player: true,
+                    pesanBerlangsungKapalPerang_AI: false
+                });
+
+                setTimeout(function() 
+                {
+                    this.setState({ 
+                        pesanBerlangsung: '',
+                        giliran_player: true,
+                        disablePB_player: false
+                    });
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+        
+
+        // Cek buat kapal induk
+        if (array_baru[baris][kolom] === 'c')
+        {
+            this.setState((prevState) => ({
+                kapalIndukTotalTersedia_AI: prevState.kapalIndukTotalTersedia_AI - 1
+            }));
+
+
+            if (this.state.kapalIndukTotalTersedia_AI === 1)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Anda</b> berhasil menenggelamkan kapal induk musuh.',
+                    giliran_player: false, 
+                    disablePB_player: true,
+                    pesanBerlangsungKapalInduk_AI: false
+                });
+
+                setTimeout(function() 
+                {
+                    this.setState({ 
+                        pesanBerlangsung: '',
+                        disablePB_player: false,
+                        giliran_player: true
+                    });
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+    }
+
+
+
+
+
+    pesanBerlangsungAI = (array_baru, baris, kolom, pakaiSkill = false) =>
+    {
+        const waktuDelayPesan = 2500;
+
+
+        // Cek buat kapal selam
+        if (array_baru[baris][kolom] === 's')
+        {
+            const kapalSelamTotalTersedia = this.state.kapalSelamTotalTersedia_Player - 1
+
+            this.setState({
+                kapalSelamTotalTersedia_Player: kapalSelamTotalTersedia
+            });
+
+
+            if (kapalSelamTotalTersedia === 0)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal selam Anda.',
+                });
+
+                setTimeout(function()
+                {
+                    this.setState({ pesanBerlangsung: '' });
+
+                    this.komputerYangNembak();
+
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+
+
+        // Cek buat kapal perang
+        if (array_baru[baris][kolom] === 'd')
+        {
+
+            this.setState((prevState) => ({
+                kapalPerangTotalTersedia_Player: prevState.kapalPerangTotalTersedia_Player - 1
+            }));
+
+
+            if (this.state.kapalPerangTotalTersedia_Player === 1)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal perang Anda.',
+                });
+
+                setTimeout(function()
+                {
+                    this.setState({ pesanBerlangsung: '' });
+
+                    // Main Lagi
+                    this.komputerYangNembak();
+
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+
+
+
+
+        // Cek buat kapal induk
+        if (array_baru[baris][kolom] === 'c')
+        {
+
+            this.setState((prevState) => ({
+                kapalIndukTotalTersedia_Player: prevState.kapalIndukTotalTersedia_Player - 1
+            }));
+
+
+            if (this.state.kapalIndukTotalTersedia_Player === 1)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal induk Anda.',
+                });
+
+                setTimeout(function()
+                {
+                    this.setState({ pesanBerlangsung: '' });
+
+                    // Main Lagi
+                    this.komputerYangNembak();
+
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+    }
+
+
+
+
+
+    komputerYangNembak = () =>
+    {
+        setTimeout(() =>
+        {
+            const statePemain = this.state.posisi_kapal_id
+
+            if (!this.state.giliran_player)
+            {
+                let array_baru = statePemain;
+
+                const tembak = (baris, kolom) =>
+                {
+                    let statusTembak = "salah"
                 
-                if (cell === "x" || cell === "-")
-                {
-                    statusTembak = tembakAcak();
-                }
-                else
-                {
-                    statusTembak = tembak(row, col);
-                }
-
-                return statusTembak
-            }
-
-
-
-            let cekTembakan = tembakAcak();
-
-            if (cekTembakan === "bener")
-            {
-                while (cekTembakan)
-                {
-                    if (cekTembakan === "salah")
+                    if (baris !== "" && 
+                        kolom !== "" &&
+                        typeof array_baru[baris][kolom] !== "undefined")
                     {
-                        this.setState({ giliran_player: true })
-                        break;
+                        if (array_baru[baris][kolom] !== '-' && 
+                            array_baru[baris][kolom] !== 'x')
+                        {
+                            if (array_baru[baris][kolom] === 's' || 
+                                array_baru[baris][kolom] === 'd' || 
+                                array_baru[baris][kolom] === 'c')
+                            {
+
+                                this.pesanBerlangsungAI(array_baru, baris, kolom);
+
+                                // Kalau berhasil nembak
+                                array_baru[baris][kolom] = 'x'
+                                statusTembak = "bener"
+                            }
+                            else
+                            {
+                                array_baru[baris][kolom] = '-'
+                            }
+                        }   
                     }
 
-                    cekTembakan = tembakAcak();
+                    return statusTembak;
                 }
+
+
+                // Ganti state kalau ada perubahan jadi 'x'
+                this.setState({ posisi_kapal_id: array_baru });
+
+                // Ambil state yang terbaru
+                let kapal_pemain = this.state.posisi_kapal_id
+
+                let statusTembak = ""
+                function tembakAcak() 
+                {
+                    const row = Math.floor(Math.random() * 8);
+                    const col = Math.floor(Math.random() * 8);
+                    const cell = kapal_pemain[row][col];
+                    
+                    if (cell === "x" || cell === "-")
+                    {
+                        statusTembak = tembakAcak();
+                    }
+                    else
+                    {
+                        statusTembak = tembak(row, col);
+                    }
+
+                    return statusTembak
+                }
+
+
+
+                let cekTembakan = tembakAcak();
+
+                if (cekTembakan === "bener")
+                {
+                    while (cekTembakan)
+                    {
+                        if (cekTembakan === "salah")
+                        {
+                            this.setState({ giliran_player: true })
+                            break;
+                        }
+
+                        cekTembakan = tembakAcak();
+                    }
+                }
+                else
+                    this.setState({ giliran_player: true })
             }
-            else
-                this.setState({ giliran_player: true })
-        }
+        }, 1000);
     }
 
 
@@ -706,39 +1137,110 @@ class PlayComponent extends Component
     }
 
 
+    tampilanKalah()
+    {
+        return(
+            <>
+                <h1>Yee Kalah!</h1>
+            </>
+        )
+    }
+
+
 
     isPlayGame()
     {
         
         return(
-            <div className='mt-2'>
-                <div className="row">
-                    <div className="col-md-4">
-                        <div style={{maxWidth: '400px', margin: 'auto'}}>
-                            <h2>Papan Anda</h2>
-                            <p>Musuh akan menyerang kapal Anda secara acak lokasinya.</p>
+            <>
+                {this.state.showPopupSKill ? (
+                    <div className='popup-skill'>
+                        <div className='content'>
+                            <label className='mb-2'>Tembak pada bagian</label>
 
-                            <div className="mt-5">
-                                <table id="papan-anda">
-                                    <tbody>
-                                        {this.state.posisi_kapal_id.map((baris, barisIndex) => 
-                                        (
-                                            <tr key={barisIndex}>
-                                                {baris.map((kolom, kolomIndex) => 
-                                                {
-                                                    let nama_kolom = 'cell diposisikan'
+                            <select onChange={(e) => this.setState({tipePosisiTorpedo: e.target.value})} className='form-select'>
+                                <option value="baris">Baris</option>
+                                <option value="kolom">Kolom</option>
+                            </select>
 
-                                                    if (kolom === 'c')
-                                                        nama_kolom += ' carrier'
+                            <br/>
 
-                                                    else if (kolom === 'd')
-                                                        nama_kolom += ' destroyer'
+                            <label className='mb-2'>Titik Lokasi (0-7)</label>
+                            <input className='form-control' placeholder="0" maxLength={1} onChange={(e) => this.setState({targetPosisiTorpedo: e.target.value})}/><br/>
 
-                                                    else if (kolom === 's')
-                                                        nama_kolom += ' submarine'
+                            <button className='btn btn-secondary me-2' onClick={() => this.cancelPopupSkill()}>&laquo; Batalkan</button>
+                            <button className='btn btn-primary' onClick={() => this.tembakTorpedonya_player()}>Tembak!</button>
+                        </div>
+                    </div>
+                ) : ''}
 
-                                                    return (
-                                                        <td key={kolomIndex} className={nama_kolom}>
+
+                <div className='mt-2'>
+                    <div className="row">
+                        <div className="col-md-4">
+                            <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                <h2>Papan Anda</h2>
+                                <p>Musuh akan menyerang kapal Anda secara acak lokasinya.</p>
+
+                                <div className="mt-5">
+                                    <table id="papan-anda">
+                                        <tbody>
+                                            {this.state.posisi_kapal_id.map((baris, barisIndex) => 
+                                            (
+                                                <tr key={barisIndex}>
+                                                    {baris.map((kolom, kolomIndex) => 
+                                                    {
+                                                        let nama_kolom = 'cell diposisikan'
+
+                                                        if (kolom === 'c')
+                                                            nama_kolom += ' carrier'
+
+                                                        else if (kolom === 'd')
+                                                            nama_kolom += ' destroyer'
+
+                                                        else if (kolom === 's')
+                                                            nama_kolom += ' submarine'
+
+                                                        return (
+                                                            <td key={kolomIndex} className={nama_kolom}>
+                                                                {kolom === '-' ? (
+                                                                    <div className='text-center text-secondary'>
+                                                                        <i className="fa-solid fa-circle-dot"></i>
+                                                                    </div>
+                                                                ) : kolom === 'x' ? (
+                                                                    <div className='text-center text-danger'>
+                                                                        <i className="fa-solid fa-xmark"></i>
+                                                                    </div>
+                                                                ) : ''}
+                                                            </td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+
+                                    <div className='mt-2'>
+                                        <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div className="col-md-4">
+                            <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                <h2>Papan Musuh</h2>
+                                <p>Silakan serang kapal musuh yang ada di papan bawah ini.</p>
+
+                                <div className="mt-5">
+                                    
+                                    <table id="papan-ai">
+                                        <tbody>
+                                            {this.state.posisi_kapal_ai_id.map((baris, barisIndex) => (
+                                                <tr key={barisIndex}>
+                                                    {baris.map((kolom, kolomIndex) => (
+                                                        <td className='cell' disabled={kolom === '-'} key={kolomIndex} onClick={() => this.handleKlikCell(barisIndex, kolomIndex)}>
                                                             {kolom === '-' ? (
                                                                 <div className='text-center text-secondary'>
                                                                     <i className="fa-solid fa-circle-dot"></i>
@@ -749,147 +1251,110 @@ class PlayComponent extends Component
                                                                 </div>
                                                             ) : ''}
                                                         </td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
 
-                                <div className='mt-2'>
-                                    <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                    <div className='mt-2'>
+                                        <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
 
-                    <div className="col-md-4">
-                        <div style={{maxWidth: '400px', margin: 'auto'}}>
-                            <h2>Papan Musuh</h2>
-                            <p>Silakan serang kapal musuh yang ada di papan bawah ini.</p>
+                        <div className="col-md-4">
+                            <div style={{maxWidth: '400px', margin: 'auto'}}>
+                                <h2>Permainan</h2>
+                                <p>Informasi mengenai permainan dan skill yang akan di pakai nantinya.</p>
 
-                            <div className="mt-5">
-                                
-                                <table id="papan-ai">
-                                    <tbody>
-                                        {this.state.posisi_kapal_ai_id.map((baris, barisIndex) => (
-                                            <tr key={barisIndex}>
-                                                {baris.map((kolom, kolomIndex) => (
-                                                    <td className='cell' disabled={kolom === '-'} key={kolomIndex} onClick={() => this.handleKlikCell(barisIndex, kolomIndex)}>
-                                                        {kolom === '-' ? (
-                                                            <div className='text-center text-secondary'>
-                                                                <i className="fa-solid fa-circle-dot"></i>
-                                                            </div>
-                                                        ) : kolom === 'x' ? (
-                                                            <div className='text-center text-danger'>
-                                                                <i className="fa-solid fa-xmark"></i>
-                                                            </div>
-                                                        ) : ''}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                <div className='mt-4'>
+                                    <label className="form-label d-block">Giliran Permainan:</label>
+                                    <h3>
+                                        {
+                                            this.state.disablePB_player ? (
+                                                <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
+                                            ) : this.state.giliran_player ? (
+                                                <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
+                                            ) : (
+                                                <span className="badge bg-primary"><i className="fa-solid fa-robot d-inline-block me-1"></i> Komputer</span>
+                                            )
+                                        }
+                                    </h3>
 
-                                <div className='mt-2'>
-                                    <small>Ukuran: {this.state.board_game_size}x{this.state.board_game_size}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                    <div className='mt-4'>                                
+                                        <h5>Skill Permainan</h5>
 
+                                        <div className='mt-2 skill-permainan d-flex'>
 
-                    <div className="col-md-4">
-                        <div style={{maxWidth: '400px', margin: 'auto'}}>
-                            <h2>Permainan</h2>
-                            <p>Informasi mengenai permainan dan skill yang akan di pakai nantinya.</p>
+                                            {/* <div className='me-2'>
+                                                <div className='items'>
+                                                    <div className={this.state.countdownSkillBomb === 0 ? 'open' : 'disabled'}>
 
-                            <div className='mt-4'>
-                                <label className="form-label d-block">Giliran Permainan:</label>
-                                <h3>
-                                    {
-                                        this.state.disablePB_player ? (
-                                            <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
-                                        ) : this.state.giliran_player ? (
-                                            <span className="badge bg-secondary"><i className="fa-solid fa-user d-inline-block me-1"></i> Anda</span>
-                                        ) : (
-                                            <span className="badge bg-primary"><i className="fa-solid fa-robot d-inline-block me-1"></i> Komputer</span>
-                                        )
-                                    }
-                                </h3>
-
-                                <div className='mt-4'>                                
-                                    <h5>Skill Permainan</h5>
-
-                                    <div className='mt-2 skill-permainan d-flex'>
-
-                                        <div className='me-2'>
-                                            <div className='items'>
-                                                <div className={this.state.countdownSkillBomb === 0 ? 'open' : 'disabled'}>
-
-                                                {this.state.countdownSkillBomb > 0 ? (
-                                                    <>
-                                                        <img src={BombImage} alt="Bom Mines"/>
-                                                        <p>Ranjau</p>
-                                                    </>
-                                                ) : (
-                                                    <a href="#bomb" onClick={(e) => this.pakaiSkillnya(e, 'bomb')}>
-                                                        <img src={BombImage} alt="Bom Mines"/>
-                                                        <p>Ranjau</p>
-                                                    </a>
-                                                )}
-
-                                                
-                                                </div>
-
-                                                {this.state.countdownSkillBomb > 0 ? (
-                                                    <span className='counter'>{this.state.countdownSkillBomb}s</span>
-                                                ) : ''}
-                                            </div>
-                                        </div>
-
-                                        <div className='mx-2'>
-                                            <div className='items'>
-                                                <div className={this.state.countdownSkillTorpedo === 0 ? 'open' : 'disabled'}>
-                                                    {this.state.countdownSkillTorpedo > 0 ? (
+                                                    {this.state.countdownSkillBomb > 0 ? (
                                                         <>
-                                                            <img src={TorpedoImage} alt="Torpedo"/>
-                                                            <p>Torpedo</p>
+                                                            <img src={BombImage} alt="Bom Mines"/>
+                                                            <p>Ranjau</p>
                                                         </>
                                                     ) : (
-                                                        <a href="#torpedo" onClick={(e) => this.pakaiSkillnya(e, 'torpedo')}>
-                                                            <img src={TorpedoImage} alt="Torpedo"/>
-                                                            <p>Torpedo</p>
+                                                        <a href="#bomb" onClick={(e) => this.pakaiSkillnya(e, 'bomb')}>
+                                                            <img src={BombImage} alt="Bom Mines"/>
+                                                            <p>Ranjau</p>
                                                         </a>
                                                     )}
-                                                </div>
 
-                                                {this.state.countdownSkillTorpedo > 0 ? (
-                                                    <span className='counter'>{this.state.countdownSkillTorpedo}s</span>
-                                                ) : ''}
+                                                    
+                                                    </div>
+
+                                                    {this.state.countdownSkillBomb > 0 ? (
+                                                        <span className='counter'>{this.state.countdownSkillBomb}s</span>
+                                                    ) : ''}
+                                                </div>
+                                            </div> */}
+
+                                            <div className='mx-0'>
+                                                <div className='items'>
+                                                    <div className={this.state.countdownSkillTorpedo === 0 ? 'open' : 'disabled'}>
+                                                        {this.state.countdownSkillTorpedo > 0 ? (
+                                                            <>
+                                                                <img src={TorpedoImage} alt="Torpedo"/>
+                                                                <p>Torpedo</p>
+                                                            </>
+                                                        ) : (
+                                                            <a href="#torpedo" onClick={(e) => this.pakaiSkillnya(e, 'torpedo')}>
+                                                                <img src={TorpedoImage} alt="Torpedo"/>
+                                                                <p>Torpedo</p>
+                                                            </a>
+                                                        )}
+                                                    </div>
+
+                                                    {this.state.countdownSkillTorpedo > 0 ? (
+                                                        <span className='counter'>{this.state.countdownSkillTorpedo}s</span>
+                                                    ) : ''}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
 
-                                {this.state.pesanBerlangsung !== '' ? (
-                                    <div className='mt-4 text-center'>
+                                    {this.state.pesanBerlangsung !== '' ? (
+                                        <div className='mt-4 text-center'>
 
-                                        <div className='alert alert-warning'>
-                                            <h4>Berlangsung</h4>
-                                            <div dangerouslySetInnerHTML={{__html: this.state.pesanBerlangsung}}></div>
+                                            <div className='alert alert-warning'>
+                                                <h4>Berlangsung</h4>
+                                                <div dangerouslySetInnerHTML={{__html: this.state.pesanBerlangsung}}></div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : ''}
+                                    ) : ''}
 
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </>
         )
     }
 
@@ -911,6 +1376,16 @@ class PlayComponent extends Component
                     </>
                 )
             }
+            else if (this.state.kapalIndukTotalTersedia_Player === 0 &&
+                this.state.kapalPerangTotalTersedia_Player === 0 &&
+                this.state.kapalSelamTotalTersedia_Player === 0)
+            {
+                return(
+                    <>
+                        {this.tampilanKalah()}
+                    </>
+                )
+            }
             else
             {
                 let outputTableCell = '';
@@ -928,9 +1403,9 @@ class PlayComponent extends Component
                     <>
                         <div className="container my-5" id="play-board">
                             <div className="menu-back mb-5">
-                                <Link to="/" className='back-button'>
+                                <a href="/" className='back-button'>
                                     <i className="fa-solid fa-arrow-left"></i> <span>Kembali</span>
-                                </Link>
+                                </a>
                             </div>
 
 
