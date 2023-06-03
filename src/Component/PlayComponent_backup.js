@@ -45,7 +45,6 @@ class PlayComponent extends Component
                 panjang_kapal: [panjang_induk, panjang_perang, panjang_selam],
                 posisi_kapal: [],
                 posisi_kapal_id: [],
-                posisi_kapal_minMax: [],
 
                 //  Hide Kapal
                 hideKapalInduk: false,
@@ -145,6 +144,10 @@ class PlayComponent extends Component
 
         switch(tipe)
         {
+            case 'bomb':
+                alert('Lagi dalam pembuatan.');
+                break;
+
             case 'torpedo':
                 if (this.state.countdownSkillTorpedo === 0)
                 {
@@ -680,64 +683,15 @@ class PlayComponent extends Component
     }
 
 
-    createMatrixMinmax = () =>
-    {
-        function generateRandomNumber(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        const newMatrix = [];
-
-        for (let i = 0; i < this.state.board_game_size; i++) 
-        {
-            const row = this.state.posisi_kapal_id[i];
-            const newRow = [];
-
-            for (let j = 0; j < row.length; j++) 
-            {
-                const value = row[j];
-
-                if (value === "c" || value === "d" || value === "s") 
-                {
-                    const randomNum = generateRandomNumber(6, 10);
-                    newRow.push(randomNum);
-                } else if (value === null) {
-                    const randomNum = generateRandomNumber(1, 10);
-                    newRow.push(randomNum);
-                } else {
-                    newRow.push(value);
-                }
-            }
-
-            newMatrix.push(newRow);
-        }
-
-        return newMatrix;
-    }
-
-
     handleMulaiMainGame()
     {
-        const matriks_baru = this.randomPosisiMatrixAI()
+        const randomPosisiMatrixAI = this.randomPosisiMatrixAI()
 
-        var computerShots = [];
-        for (var i = 0; i < 8; i++) {
-            computerShots[i] = new Array(this.state.board_game_size).fill(0);
-        }
+        console.log(randomPosisiMatrixAI)
 
         this.setState({
             is_play_game: true, 
-            posisi_kapal_ai_id: matriks_baru,
-            shotHistory: computerShots
-        });
-
-        const minmaxMatriks = this.createMatrixMinmax(matriks_baru);
-
-        this.setState({
-            is_play_game: true, 
-            posisi_kapal_ai_id: matriks_baru,
-            shotHistory: computerShots,
-            posisi_kapal_minMax: minmaxMatriks
+            posisi_kapal_ai_id: randomPosisiMatrixAI
         });
 
         this.startCountdown();
@@ -992,248 +946,186 @@ class PlayComponent extends Component
 
 
 
+    pesanBerlangsungAI = (array_baru, baris, kolom, pakaiSkill = false) =>
+    {
+        const waktuDelayPesan = 2500;
+
+
+        // Cek buat kapal selam
+        if (array_baru[baris][kolom] === 's')
+        {
+            const kapalSelamTotalTersedia = this.state.kapalSelamTotalTersedia_Player - 1
+
+            this.setState({
+                kapalSelamTotalTersedia_Player: kapalSelamTotalTersedia
+            });
+
+
+            if (kapalSelamTotalTersedia === 0)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal selam Anda.',
+                });
+
+                setTimeout(function()
+                {
+                    this.setState({ pesanBerlangsung: '' });
+
+                    this.komputerYangNembak();
+
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+
+
+        // Cek buat kapal perang
+        if (array_baru[baris][kolom] === 'd')
+        {
+
+            this.setState((prevState) => ({
+                kapalPerangTotalTersedia_Player: prevState.kapalPerangTotalTersedia_Player - 1
+            }));
+
+
+            if (this.state.kapalPerangTotalTersedia_Player === 1)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal perang Anda.',
+                });
+
+                setTimeout(function()
+                {
+                    this.setState({ pesanBerlangsung: '' });
+
+                    // Main Lagi
+                    this.komputerYangNembak();
+
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+
+
+
+
+        // Cek buat kapal induk
+        if (array_baru[baris][kolom] === 'c')
+        {
+
+            this.setState((prevState) => ({
+                kapalIndukTotalTersedia_Player: prevState.kapalIndukTotalTersedia_Player - 1
+            }));
+
+
+            if (this.state.kapalIndukTotalTersedia_Player === 1)
+            {
+                this.setState({
+                    pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal induk Anda.',
+                });
+
+                setTimeout(function()
+                {
+                    this.setState({ pesanBerlangsung: '' });
+
+                    // Main Lagi
+                    this.komputerYangNembak();
+
+                }.bind(this), waktuDelayPesan);
+            }
+        }
+    }
+
+
+
+
+
     komputerYangNembak = () =>
     {
-
         setTimeout(() =>
         {
-            const getRandomShot = () => 
-            {
-                // // Mengecek apakah semua posisi sudah ditembak
-                let allShotsTaken = true;
+            const statePemain = this.state.posisi_kapal_id
 
-                for (var i = 0; i < 8; i++) 
+            if (!this.state.giliran_player)
+            {
+                let array_baru = statePemain;
+
+                const tembak = (baris, kolom) =>
                 {
-                    for (var j = 0; j < 8; j++) {
-                        if (this.state.shotHistory[i][j] === 0) 
+                    let statusTembak = "salah"
+                
+                    if (baris !== "" && 
+                        kolom !== "" &&
+                        typeof array_baru[baris][kolom] !== "undefined")
+                    {
+                        if (array_baru[baris][kolom] !== '-' && 
+                            array_baru[baris][kolom] !== 'x')
                         {
-                            allShotsTaken = false;
+                            if (array_baru[baris][kolom] === 's' || 
+                                array_baru[baris][kolom] === 'd' || 
+                                array_baru[baris][kolom] === 'c')
+                            {
+
+                                this.pesanBerlangsungAI(array_baru, baris, kolom);
+
+                                // Kalau berhasil nembak
+                                array_baru[baris][kolom] = 'x'
+                                statusTembak = "bener"
+                            }
+                            else
+                            {
+                                array_baru[baris][kolom] = '-'
+                            }
+                        }   
+                    }
+
+                    return statusTembak;
+                }
+
+
+                // Ganti state kalau ada perubahan jadi 'x'
+                this.setState({ posisi_kapal_id: array_baru });
+
+                // Ambil state yang terbaru
+                let kapal_pemain = this.state.posisi_kapal_id
+
+                let statusTembak = ""
+                function tembakAcak() 
+                {
+                    const row = Math.floor(Math.random() * 8);
+                    const col = Math.floor(Math.random() * 8);
+                    const cell = kapal_pemain[row][col];
+                    
+                    if (cell === "x" || cell === "-")
+                    {
+                        statusTembak = tembakAcak();
+                    }
+                    else
+                    {
+                        statusTembak = tembak(row, col);
+                    }
+
+                    return statusTembak
+                }
+
+
+
+                let cekTembakan = tembakAcak();
+
+                if (cekTembakan === "bener")
+                {
+                    while (cekTembakan)
+                    {
+                        if (cekTembakan === "salah")
+                        {
+                            this.setState({ giliran_player: true })
                             break;
                         }
+
+                        cekTembakan = tembakAcak();
                     }
-                }
-
-                // Jika semua posisi telah ditembak, kembalikan null
-                if (allShotsTaken) {
-                    return null;
-                }
-
-
-
-                // Pakai min max
-                let posisiKapalMinMax = this.state.posisi_kapal_minMax;
-
-                let maxValue = Number.NEGATIVE_INFINITY; // Inisialisasi dengan nilai terkecil
-                let maxRow = -1;
-                let maxCol = -1;
-
-                for (let row = 0; row < posisiKapalMinMax.length; row++) 
-                {
-                    for (let col = 0; col < posisiKapalMinMax[row].length; col++) 
-                    {
-                        if (posisiKapalMinMax[row][col] > maxValue) 
-                        {
-                            maxValue = posisiKapalMinMax[row][col];
-                            maxRow = row;
-                            maxCol = col;
-                        }
-                    }
-                }
-
-                
-                const row = maxRow;
-                const col = maxCol;
-                
-                posisiKapalMinMax[row][col] = -1;
-                this.setState({ posisi_kapal_minMax: posisiKapalMinMax });
-
-                return {row, col}
-            }
-
-
-            const isHit = (row, col) =>
-            {
-                let kapalState = this.state.posisi_kapal_id;
-
-                const waktuDelayPesan = 2500;
-
-                const cekKapal = 
-                kapalState[row][col] === "c" || 
-                kapalState[row][col] === "d" || 
-                kapalState[row][col] === "s";
-
-
-                if (cekKapal)
-                {
-
-                    // Pesan Berlangsung
-                    if (kapalState[row][col] === 'c')
-                    {
-
-                        this.setState((prevState) => ({
-                            kapalIndukTotalTersedia_Player: prevState.kapalIndukTotalTersedia_Player - 1
-                        }));
-
-
-                        if (this.state.kapalIndukTotalTersedia_Player === 1)
-                        {
-                            this.setState({
-                                pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal induk Anda.',
-                            });
-
-                            setTimeout(function()
-                            {
-                                this.setState({ pesanBerlangsung: '' });
-
-                                // Main Lagi
-                                this.komputerYangNembak();
-
-                            }.bind(this), waktuDelayPesan);
-                        }
-                    }
-
-                    // Cek buat kapal perang
-                    if (kapalState[row][col] === 'd')
-                    {
-
-                        this.setState((prevState) => ({
-                            kapalPerangTotalTersedia_Player: prevState.kapalPerangTotalTersedia_Player - 1
-                        }));
-
-
-                        if (this.state.kapalPerangTotalTersedia_Player === 1)
-                        {
-                            this.setState({
-                                pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal perang Anda.',
-                            });
-
-                            setTimeout(function()
-                            {
-                                this.setState({ pesanBerlangsung: '' });
-
-                                // Main Lagi
-                                this.komputerYangNembak();
-
-                            }.bind(this), waktuDelayPesan);
-                        }
-                    }
-
-
-                    // Cek buat kapal selam
-                    if (kapalState[row][col] === 's')
-                    {
-                        const kapalSelamTotalTersedia = this.state.kapalSelamTotalTersedia_Player - 1
-
-                        this.setState({
-                            kapalSelamTotalTersedia_Player: kapalSelamTotalTersedia
-                        });
-
-
-                        if (kapalSelamTotalTersedia === 0)
-                        {
-                            this.setState({
-                                pesanBerlangsung: '<b>Komputer</b> berhasil menenggelamkan kapal selam Anda.',
-                            });
-
-                            setTimeout(function()
-                            {
-                                this.setState({ pesanBerlangsung: '' });
-
-                                this.komputerYangNembak();
-
-                            }.bind(this), waktuDelayPesan);
-                        }
-                    }
-
-
-                    
-                    kapalState[row][col] = 'x';
-                    this.setState({ posisi_kapal_id: kapalState });
-                }
-
-                return cekKapal;
-            }
-
-            
-            
-            const continueShooting = (hitRow, hitCol) =>
-            {
-                let shotHistory = this.state.shotHistory;
-                
-                var directions = [
-                    { row: -1, col: 0 }, // Atas
-                    { row: 1, col: 0 }, // Bawah
-                    { row: 0, col: -1 }, // Kiri
-                    { row: 0, col: 1 }, // Kanan
-                ];
-
-                var nextShots = [];
-
-                // Tembakan di sekitar kapal yang terkena tembakan
-                for (var i = 0; i < directions.length; i++) 
-                {
-                    var newRow = hitRow + directions[i].row;
-                    var newCol = hitCol + directions[i].col;
-
-                    if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8 && shotHistory[newRow][newCol] === 0) 
-                    {
-                        nextShots.push({ row: newRow, col: newCol });
-                    }
-                }
-
-                // Jika ada tembakan lanjutan, pilih secara acak satu tembakan
-                if (nextShots.length > 0) 
-                {
-                    var randomIndex = Math.floor(Math.random() * nextShots.length);
-                    var nextShot = nextShots[randomIndex];
-
-                    // Tandai tembakan komputer
-                    shotHistory[nextShot.row][nextShot.col] = 1; 
-                    this.setState({ shotHistory: shotHistory })
-
-
-                    if (isHit(nextShot.row, nextShot.col)) 
-                    {
-                        // Lanjutkan penembakan di sekitar kapal yang terkena tembakan
-                        continueShooting(nextShot.row, nextShot.col);
-                    }
-                }
-            }
-
-
-            const tembak = () =>
-            {
-                let shot = getRandomShot();
-
-                if (shot === null) {
-                    console.log('Papan telah ditembak semua!');
-                    return;
-                }
-
-
-                let komputerShot = this.state.shotHistory;
-                komputerShot[shot.row][shot.col] = 1;
-
-                if (isHit(shot.row, shot.col))
-                {
-                    continueShooting(shot.row, shot.col);
                 }
                 else
-                {
-                    let board_player = this.state.posisi_kapal_id;
-
-                    if (board_player[shot.row][shot.col] !== 'x')
-                    {
-                        board_player[shot.row][shot.col] = '-';
-                        this.setState({ posisi_kapal_id: board_player });
-                    }
-                    else tembak();
-                }
+                    this.setState({ giliran_player: true })
             }
-
-
-            tembak();
-            this.setState({ giliran_player: true });
         }, 1000);
     }
 
