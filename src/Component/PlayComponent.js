@@ -56,13 +56,6 @@ class PlayComponent extends Component
             // AI
                 posisi_kapal_ai_id: [],
 
-
-
-            // Count down skill
-            countdownSkillBomb: delaySkillRanjau,
-            countdownSkillTorpedo: delaySkillTorpedo,
-
-
             
             // Cek buat tenggelam atau engga
             kapalIndukTotalTersedia_AI: panjang_induk,
@@ -82,59 +75,14 @@ class PlayComponent extends Component
             showPopupSKill: false,
 
 
-            // AI history nembak
-            shotHistory: []
+            // Langkah AI history nembak
+            shotHistory: [],
+
+            energiPlayer: 0,
+            energiAI: 0
         }
 
         this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
-    }
-
-
-
-    startCountdown() 
-    {
-        this.countDownSkillRanjau();
-        this.countDownSkillTorpedo();
-    }
-
-
-
-
-    countDownSkillTorpedo()
-    {
-        // Skill torpedo
-        this.countDownTorpedo = setInterval(() => 
-        {
-            this.setState((prevState) => 
-            {
-                if (prevState.countdownSkillTorpedo <= 0) {
-                    clearInterval(this.countDownTorpedo);
-                    
-                    return prevState;
-                } else {
-                    return { countdownSkillTorpedo: prevState.countdownSkillTorpedo - 1 };
-                }
-            });
-        }, 1800);
-    }
-
-
-    countDownSkillRanjau()
-    {
-        /// Skill Bomb
-        this.countDownBomb = setInterval(() => 
-        {
-            this.setState((prevState) => 
-            {
-                if (prevState.countdownSkillBomb <= 0) {
-                    clearInterval(this.countDownBomb);
-
-                    return prevState;
-                } else {
-                    return { countdownSkillBomb: prevState.countdownSkillBomb - 1 };
-                }
-            });
-        }, 1000);
     }
 
 
@@ -146,7 +94,7 @@ class PlayComponent extends Component
         switch(tipe)
         {
             case 'torpedo':
-                if (this.state.countdownSkillTorpedo === 0)
+                if (this.state.energiPlayer > 25)
                 {
                     this.setState({ showPopupSKill: true })
                 }
@@ -353,13 +301,12 @@ class PlayComponent extends Component
             this.setState({ 
                 giliran_player: false, 
                 showPopupSKill: false,
-                countdownSkillTorpedo: delaySkillTorpedo,
                 tipePosisiTorpedo: 'baris',
                 targetPosisiTorpedo: '' 
             });
 
-            this.countDownSkillTorpedo();
-            setTimeout(() => this.tembakTorpedonya_AI(), 1200);
+
+            this.komputerYangNembak();
         }
     }
 
@@ -739,8 +686,6 @@ class PlayComponent extends Component
             shotHistory: computerShots,
             posisi_kapal_minMax: minmaxMatriks
         });
-
-        this.startCountdown();
     }
 
 
@@ -1401,35 +1346,10 @@ class PlayComponent extends Component
 
                                         <div className='mt-2 skill-permainan d-flex'>
 
-                                            {/* <div className='me-2'>
-                                                <div className='items'>
-                                                    <div className={this.state.countdownSkillBomb === 0 ? 'open' : 'disabled'}>
-
-                                                    {this.state.countdownSkillBomb > 0 ? (
-                                                        <>
-                                                            <img src={BombImage} alt="Bom Mines"/>
-                                                            <p>Ranjau</p>
-                                                        </>
-                                                    ) : (
-                                                        <a href="#bomb" onClick={(e) => this.pakaiSkillnya(e, 'bomb')}>
-                                                            <img src={BombImage} alt="Bom Mines"/>
-                                                            <p>Ranjau</p>
-                                                        </a>
-                                                    )}
-
-                                                    
-                                                    </div>
-
-                                                    {this.state.countdownSkillBomb > 0 ? (
-                                                        <span className='counter'>{this.state.countdownSkillBomb}s</span>
-                                                    ) : ''}
-                                                </div>
-                                            </div> */}
-
                                             <div className='mx-0'>
                                                 <div className='items'>
-                                                    <div className={this.state.countdownSkillTorpedo === 0 ? 'open' : 'disabled'}>
-                                                        {this.state.countdownSkillTorpedo > 0 ? (
+                                                    <div className={this.state.energiPlayer > 25 ? 'open' : 'disabled'}>
+                                                        {this.state.energiPlayer > 25 ? (
                                                             <>
                                                                 <img src={TorpedoImage} alt="Torpedo"/>
                                                                 <p>Torpedo</p>
@@ -1441,10 +1361,6 @@ class PlayComponent extends Component
                                                             </a>
                                                         )}
                                                     </div>
-
-                                                    {this.state.countdownSkillTorpedo > 0 ? (
-                                                        <span className='counter'>{this.state.countdownSkillTorpedo}s</span>
-                                                    ) : ''}
                                                 </div>
                                             </div>
                                         </div>
