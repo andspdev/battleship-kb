@@ -1,6 +1,5 @@
 import { Component } from 'react'
 import { GlobalContext } from "../States/GlobalProvider";
-import { Link } from 'react-router-dom';
 
 // import BombImage from '../Assets/images/bomb.jpg'
 import TorpedoImage from '../Assets/images/torpedo.jpg'
