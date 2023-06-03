@@ -21,7 +21,7 @@ class IndexComponent extends Component
 		return (
 			<>
 				<div className="index-message">
-					<h1>BattleshipIndo</h1>
+					<h1>Battleship-KB</h1>
 
 					<div className="mt-1">
 						<div className="desc">
