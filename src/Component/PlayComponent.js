@@ -9,9 +9,6 @@ const panjang_induk = 5
 const panjang_selam = 1
 const panjang_perang = 3
 
-const delaySkillRanjau = 20
-const delaySkillTorpedo = 1
-
 
 class PlayComponent extends Component 
 {
@@ -646,7 +643,7 @@ class PlayComponent extends Component
 
                 if (value === "c" || value === "d" || value === "s") 
                 {
-                    const randomNum = generateRandomNumber(6, 10);
+                    const randomNum = generateRandomNumber(5, 9);
                     newRow.push(randomNum);
                 } else if (value === null) {
                     const randomNum = generateRandomNumber(1, 10);
