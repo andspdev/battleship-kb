@@ -1494,9 +1494,9 @@ class PlayComponent extends Component
                     <>
                         <div className="container my-5" id="play-board">
                             <div className="menu-back mb-5">
-                                <a href="/" className='back-button'>
+                                <Link to="/" className='back-button'>
                                     <i className="fa-solid fa-arrow-left"></i> <span>Kembali</span>
-                                </a>
+                                </Link>
                             </div>
 
 
