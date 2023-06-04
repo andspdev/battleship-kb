@@ -586,10 +586,11 @@ class PlayComponent extends Component
 
 
                                     // Update posisi kapal yang di state
-                                    this.setState({ 
+                                    this.setState((prevState) => ({ 
                                         posisi_kapal: posisi_kapal,
-                                        posisi_kapal_id: board_array
-                                     });
+                                        posisi_kapal_id: board_array,
+                                        totalDragDropKapal: prevState.totalDragDropKapal + 1
+                                     }));
                                     
 
                                     // reset posisi kapal (yang bukan var state)
@@ -657,8 +658,9 @@ class PlayComponent extends Component
 
                 if (value === "c" || value === "d" || value === "s") 
                 {
-                    const randomNum = generateRandomNumber(7, 10);
+                    const randomNum = generateRandomNumber(6, 10);
                     newRow.push(randomNum);
+
                 } else if (value === null) {
                     const randomNum = generateRandomNumber(1, 10);
                     newRow.push(randomNum);
@@ -712,6 +714,7 @@ class PlayComponent extends Component
             rotasiKapalInduk: 'horizontal',
             rotasiKapalPerang: 'horizontal',
             rotasiKapalSelam: 'horizontal',
+            totalDragDropKapal: 0
         });
 
 
@@ -739,6 +742,8 @@ class PlayComponent extends Component
                 kapal.classList.add('horizontal');
             });
         }
+
+        console.log(this.state.posisi_kapal.length)
     }
 
 
@@ -1606,7 +1611,7 @@ class PlayComponent extends Component
                                                 </div>
 
 
-                                                {this.state.posisi_kapal.length === this.state.panjang_kapal.length ? (
+                                                {this.state.hideKapalInduk && this.state.hideKapalPerang && this.state.hideKapalSelam ? (
                                                     <div className="my-3 py-4 text-center">
                                                         <h4>Sudah Siap?</h4>
                                                         
