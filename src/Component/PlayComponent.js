@@ -5,6 +5,7 @@ import { GlobalContext } from "../States/GlobalProvider";
 import TorpedoImage from '../Assets/images/torpedo.jpg'
 import KapalMenang from '../Assets/images/kapal-menang.png';
 import KapalSink from '../Assets/images/kapal-sink.png';
+import { Link } from 'react-router-dom';
 
 
 const panjang_induk = 5
@@ -1238,7 +1239,7 @@ class PlayComponent extends Component
                     <p>Anda berhasil memenangkan game Battleship ini dan mengalahkan Komputer.</p>
 
                     <div className='mt-4 pt-1'>
-                        <a href="/" className='btn btn-primary'><i className="fa-solid fa-arrow-left"></i> Kembali</a>
+                        <Link to="/" className='btn btn-primary'><i className="fa-solid fa-arrow-left"></i> Kembali</Link>
                     </div>
                 </div>
             </div>
@@ -1257,7 +1258,7 @@ class PlayComponent extends Component
                     <p>Komputer berhasil memenangkan game battleship ini dan mengalahkan Anda.</p>
 
                     <div className='mt-4 pt-1'>
-                        <a href="/" className='btn btn-primary'><i className="fa-solid fa-arrow-left"></i> Kembali</a>
+                        <Link to="/" className='btn btn-primary'><i className="fa-solid fa-arrow-left"></i> Kembali</Link>
                     </div>
 
                 </div>
@@ -1453,6 +1454,7 @@ class PlayComponent extends Component
     {
         const [globalState] = this.context;
 
+        
         if (globalState.isPlay)
         {
             if (this.state.kapalIndukTotalTersedia_AI === 0 &&
