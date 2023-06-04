@@ -660,7 +660,7 @@ class PlayComponent extends Component
 
                 if (value === "c" || value === "d" || value === "s") 
                 {
-                    const randomNum = generateRandomNumber(6, 10);
+                    const randomNum = generateRandomNumber(7, 10);
                     newRow.push(randomNum);
 
                 } else if (value === null) {
