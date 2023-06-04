@@ -3,6 +3,8 @@ import { GlobalContext } from "../States/GlobalProvider";
 
 // import BombImage from '../Assets/images/bomb.jpg'
 import TorpedoImage from '../Assets/images/torpedo.jpg'
+import KapalMenang from '../Assets/images/kapal-menang.png';
+import KapalSink from '../Assets/images/kapal-sink.png';
 
 
 const panjang_induk = 5
@@ -1228,9 +1230,18 @@ class PlayComponent extends Component
     tampilanMenang()
     {
         return(
-            <>
-                <h1>Yee Menang!</h1>
-            </>
+            <div className='menang-kalah'>
+                <div className='content'>
+                    <img src={KapalMenang} alt="Kapal Menang"/>
+
+                    <h1>Yee Menang! :D</h1>
+                    <p>Anda berhasil memenangkan game Battleship ini dan mengalahkan Komputer.</p>
+
+                    <div className='mt-4 pt-1'>
+                        <a href="/" className='btn btn-primary'><i className="fa-solid fa-arrow-left"></i> Kembali</a>
+                    </div>
+                </div>
+            </div>
         )
     }
 
@@ -1238,9 +1249,19 @@ class PlayComponent extends Component
     tampilanKalah()
     {
         return(
-            <>
-                <h1>Yee Kalah!</h1>
-            </>
+            <div className='menang-kalah'>
+                <div className='content'>
+                    <img src={KapalSink} alt="Kapal Menang" />
+
+                    <h1>Yahh kalah! :(</h1>
+                    <p>Komputer berhasil memenangkan game battleship ini dan mengalahkan Anda.</p>
+
+                    <div className='mt-4 pt-1'>
+                        <a href="/" className='btn btn-primary'><i className="fa-solid fa-arrow-left"></i> Kembali</a>
+                    </div>
+
+                </div>
+            </div>
         )
     }
 
@@ -1431,7 +1452,6 @@ class PlayComponent extends Component
     render()
     {
         const [globalState] = this.context;
-
 
         if (globalState.isPlay)
         {
