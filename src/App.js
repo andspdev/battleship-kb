@@ -10,6 +10,7 @@ import './Assets/css/styles.css'
 // Load Component
 import IndexComponent from './Component/IndexComponent'
 import PlayComponent from './Component/PlayComponent'
+import KelompokComponent from './Component/KelompokComponent'
 
 
 
@@ -21,6 +22,8 @@ function App()
 				<Routes>
 					<Route path="/" element={<IndexComponent/>}/>
 					<Route path="/play" element={<PlayComponent/>}/>
+					<Route path="/kelompok-8" element={<KelompokComponent/>}/>
+					<Route path='*'></Route>
 				</Routes>
 			</BrowserRouter>
 		</GlobalProvider>

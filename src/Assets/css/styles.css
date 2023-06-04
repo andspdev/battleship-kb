@@ -3,7 +3,7 @@
     src: url(../fonts/eExplosiveAttack.ttf);
 }
 
-a {
+a, a:hover {
     color: #ba1435;
     text-decoration: none;
 }
@@ -85,13 +85,13 @@ a {
     width: 180px
 }
 
-#play-board .menu-back .back-button {
+.menu-back .back-button {
     color: #333;
     font-weight: bold;
     font-size: 18px
 }
 
-#play-board .menu-back .back-button span {
+.menu-back .back-button span {
     display: inline-block;
     margin-left:18px
 }
