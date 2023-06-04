@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Component } from "react";
 import { GlobalContext } from "../States/GlobalProvider";
 
+
 class IndexComponent extends Component
 {
 	static contextType = GlobalContext;
@@ -14,6 +15,12 @@ class IndexComponent extends Component
 			...prevState,
 			isPlay: true
 		}));
+	}
+	
+
+	componentDidMount()
+	{
+		document.title = 'Battleship-KB | Kelompok 8 (2023)'
 	}
 
 	render()

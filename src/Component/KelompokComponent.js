@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom"
 
+
 const KelompokComponent = () =>
 {
+    document.title = 'Nama Anggota Kelompok / Battleship-KB | Kelompok 8 (2023)';
     return(
         <div className="container mt-5">
 

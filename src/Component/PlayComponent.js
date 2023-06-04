@@ -425,7 +425,8 @@ class PlayComponent extends Component
 
     componentDidMount()
     {
-        document.title = 'Main Battleship'
+        document.title = 'Mainkan! / Battleship-KB | Kelompok 8 (2023)'
+
 		const [globalState] = this.context;
 
 
