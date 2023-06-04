@@ -4,6 +4,7 @@ import { GlobalContext } from "../States/GlobalProvider";
 // import BombImage from '../Assets/images/bomb.jpg'
 import TorpedoImage from '../Assets/images/torpedo.jpg'
 
+
 const panjang_induk = 5
 const panjang_selam = 1
 const panjang_perang = 3
@@ -11,7 +12,7 @@ const panjang_perang = 3
 
 const poinEnergiKena = 4
 const poinEnergiGaKena = 2
-const energiTorpedo = 15
+const energiTorpedo = 16
 
 
 class PlayComponent extends Component 
