@@ -84,7 +84,10 @@ class PlayComponent extends Component
             shotHistory: [],
 
             energiPlayer: 0,
-            energiAI: 0
+            energiAI: 0,
+
+
+            totalDragDropKapal: 0
         }
 
         this.randomPosisiMatrixAI = this.randomPosisiMatrixAI.bind(this)
@@ -430,16 +433,16 @@ class PlayComponent extends Component
 		const [globalState] = this.context;
 
 
-        setTimeout(() =>
-        {
-            if (!globalState.isPlay)
-                window.location.href = '/'
-        }, 500);
+        // setTimeout(() =>
+        // {
+        //     if (!globalState.isPlay)
+        //         window.location.href = '/'
+        // }, 500);
 
         
 
-        if (globalState.isPlay)
-        {
+        // if (globalState.isPlay)
+        // {
             // BUat papan gamenya
             const state_class = this.state
 
@@ -586,11 +589,10 @@ class PlayComponent extends Component
 
 
                                     // Update posisi kapal yang di state
-                                    this.setState((prevState) => ({ 
+                                    this.setState({ 
                                         posisi_kapal: posisi_kapal,
-                                        posisi_kapal_id: board_array,
-                                        totalDragDropKapal: prevState.totalDragDropKapal + 1
-                                     }));
+                                        posisi_kapal_id: board_array
+                                     });
                                     
 
                                     // reset posisi kapal (yang bukan var state)
@@ -599,7 +601,7 @@ class PlayComponent extends Component
                                     {
                                         posisi_kapal = [];
                                         board_array = Array.from({ length: state_class.board_game_size }, () =>
-                                            Array.from({ length: state_class.board_game_size }, () => null)
+                                        Array.from({ length: state_class.board_game_size }, () => null)
                                         );
                                     }
                                 }
@@ -608,7 +610,7 @@ class PlayComponent extends Component
                     });
                 }
             }
-        }
+        // }
     }
 
 
@@ -714,7 +716,6 @@ class PlayComponent extends Component
             rotasiKapalInduk: 'horizontal',
             rotasiKapalPerang: 'horizontal',
             rotasiKapalSelam: 'horizontal',
-            totalDragDropKapal: 0
         });
 
 
@@ -1461,8 +1462,8 @@ class PlayComponent extends Component
         const [globalState] = this.context;
 
         
-        if (globalState.isPlay)
-        {
+        // if (globalState.isPlay)
+        // {
             if (this.state.kapalIndukTotalTersedia_AI === 0 &&
                 this.state.kapalPerangTotalTersedia_AI === 0 &&
                 this.state.kapalSelamTotalTersedia_AI === 0)
@@ -1616,9 +1617,9 @@ class PlayComponent extends Component
                                                         <h4>Sudah Siap?</h4>
                                                         
                                                         <div className='mt-4'>
-                                                            <button type='button' className="btn mb-2" onClick={() => this.aturUlangLetak()}>
+                                                            <a className="btn mb-2" href="/play">
                                                                 <i className="fa-solid fa-rotate-right"></i> Atur Ulang
-                                                            </button>
+                                                            </a>
 
                                                             <button type='button' className="btn btn-mulai-main bg-success text-white mb-2" id="mulai-gamenya" onClick={() => this.handleMulaiMainGame()}>
                                                                 <i className="fa-solid fa-play"></i> Mulai!
@@ -1636,7 +1637,7 @@ class PlayComponent extends Component
                     </>
                 )
             }
-        }
+        // }
     }
 }
 
